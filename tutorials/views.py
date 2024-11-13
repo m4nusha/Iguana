@@ -10,12 +10,19 @@ from django.views.generic.edit import FormView, UpdateView, DeleteView
 from django.urls import reverse, reverse_lazy
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
+<<<<<<< HEAD
 from .models import Booking, Session, User
 from .forms import BookingForm, SessionForm, CreateUserForm, UserForm
 from django.shortcuts import get_object_or_404
 from django.db.models import Value, F, CharField
 #from django.db.models import Value
 from django.db.models.functions import Concat
+=======
+from .models import Booking
+from .forms import BookingForm
+from django.shortcuts import get_object_or_404
+
+>>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
 
 
 from .models import Student,StudentRequest
@@ -74,7 +81,11 @@ class LogInView(LoginProhibitedMixin, View):
     """Display login screen and handle user login."""
 
     http_method_names = ['get', 'post']
+<<<<<<< HEAD
     redirect_when_logged_in_url = REDIRECT_URL_WHEN_LOGGED_IN = 'dashboard' 
+=======
+    redirect_when_logged_in_url = REDIRECT_URL_WHEN_LOGGED_IN = 'dashboard' #made changes here
+>>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
 
 
     def get(self, request):
@@ -87,7 +98,11 @@ class LogInView(LoginProhibitedMixin, View):
         """Handle log in attempt."""
 
         form = LogInForm(request.POST)
+<<<<<<< HEAD
         self.next = request.POST.get('next') or 'dashboard' 
+=======
+        self.next = request.POST.get('next') or 'bookings_list' #Made changes in here!!!
+>>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
         user = form.get_user()
         if user is not None:
             # check if user is an admin
@@ -334,6 +349,7 @@ def delete_student(request,student_id):
             # If request is GET, show confirmation page
         context = f'Are you sure you want to delete the following student: "{student.name}".'
         return render(request,'delete_student.html', {'context': context,'student':student})
+<<<<<<< HEAD
 
 def student_requests(request):
     """
@@ -519,6 +535,14 @@ def bookings_list(request):
         'student_search': student_search,
         'tutor_search': tutor_search,
     })
+=======
+    
+#@login_required
+def bookings_list(request):
+    """Display a list of all bookings (Page 1)."""
+    bookings = Booking.objects.all()
+    return render(request, 'myTests/booking_list.html', {'bookings': bookings})
+>>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
 
 # Create Booking
 def booking_create(request):
@@ -530,9 +554,21 @@ def booking_create(request):
             return redirect('booking_list')
     else:
         form = BookingForm()
+<<<<<<< HEAD
     return render(request, 'bookings/booking_create.html', {'form': form})
 
 @login_required
+=======
+    return render(request, 'myTests/booking_create.html', {'form': form})
+
+# Show Booking (Detail View)
+def booking_show(request, pk):
+    """Show details of a specific booking."""
+    booking = get_object_or_404(Booking, pk=pk)
+    return render(request, 'myTests/booking_show.html', {'booking': booking})
+
+#@login_required
+>>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
 def booking_update(request, pk):
     """Update a specific booking (Page 3)."""
     booking = get_object_or_404(Booking, pk=pk)
@@ -543,15 +579,22 @@ def booking_update(request, pk):
             return redirect('booking_list')
     else:
         form = BookingForm(instance=booking)
+<<<<<<< HEAD
     return render(request, 'bookings/booking_update.html', {'form': form})
 
 @login_required
+=======
+    return render(request, 'myTests/booking_update.html', {'form': form})
+
+#@login_required
+>>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
 def booking_delete(request, pk):
     """Display confirmation page and delete a booking (Page 4)."""
     booking = get_object_or_404(Booking, pk=pk)
     if request.method == 'POST':
         booking.delete()
         return redirect('booking_list')
+<<<<<<< HEAD
     return render(request, 'bookings/booking_delete.html', {'booking': booking})
 #for tests only
 def welcome(request):
@@ -746,3 +789,10 @@ def delete_tutor(request,tutor_id):
             # If request is GET, show confirmation page
         context = f'Are you sure you want to delete the following tutor: "{tutor.name}".'
         return render(request,'delete_tutor.html', {'context': context,'tutor':tutor})
+=======
+    return render(request, 'myTests/booking_delete.html', {'booking': booking})
+#for tests only
+def inside_welcome(request):
+    """Render the inside welcome page."""
+    return render(request, 'myTests/inside_welcome.html')
+>>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
