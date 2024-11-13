@@ -8,6 +8,9 @@ from .models import Tutor, Subject
 from .models import User
 from .models import User, Booking, Session
 from django.core.exceptions import ValidationError
+from .models import User, Booking
+
+from .models import Student
 
 
 class LogInForm(forms.Form):

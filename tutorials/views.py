@@ -545,6 +545,7 @@ def bookings_list(request):
     })
 
 # Create Booking
+@login_required
 def booking_create(request):
     """Handle creation of a new booking."""
     if request.method == 'POST':

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Booking Details</title>
+</head>
+<body>
+    <h1>Booking Details</h1>
+    <p><strong>Term:</strong> {{ booking.term }}</p>
+    <p><strong>Student:</strong> {{ booking.student.full_name }}</p>
+    <p><strong>Tutor:</strong> {{ booking.tutor.full_name }}</p>
+
+    <a href="{% url 'booking_list' %}"><button>Back to Bookings</button></a>
+</body>
+</html>
