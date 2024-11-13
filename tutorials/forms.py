@@ -6,6 +6,9 @@ from .models import Student, StudentRequest
 from .models import Tutor
 from .models import User, Booking, Session
 from django.core.exceptions import ValidationError
+from .models import User, Booking
+
+from .models import Student
 
 
 class LogInForm(forms.Form):
@@ -358,3 +361,4 @@ class UpdateSessionForm(forms.ModelForm):
             self.add_error('session_date', "Session date cannot be in the past.")
         
         return cleaned_data
+        fields = ['term', 'student', 'tutor']

@@ -188,6 +188,7 @@ class Booking(models.Model):
 
     term = models.CharField(max_length=10, choices=TERM_CHOICES, default=TERM1)
     lesson_type = models.CharField(max_length=10, choices=LESSON_TYPE_CHOICES, default='Weekly')
+    term = models.CharField(max_length=10, choices=TERM_CHOICES, default=TERM1)
     student = models.ForeignKey(User, related_name='student_bookings', on_delete=models.CASCADE)
     tutor = models.ForeignKey(User, related_name='tutor_bookings', on_delete=models.CASCADE)
 
@@ -349,3 +350,9 @@ class Tutor(models.Model):
         # Provides a user-readable description excluding email
         subject_info = f"teaches ({self.get_subject_display()})" if self.get_subject_display() else "has no subject assigned"
         return f"{self.name} ({self.username.username}) {subject_info}."
+        """Model options."""
+        ordering = ['term', 'student', 'tutor']
+
+    def __str__(self):
+        """Return a readable string representation of the booking."""
+        return f'{self.term} | Student: {self.student.full_name} | Tutor: {self.tutor.full_name}'
