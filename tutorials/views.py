@@ -10,6 +10,10 @@ from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
+from .models import Booking
+from .forms import BookingForm
+from django.shortcuts import get_object_or_404
+
 
 from .models import Student
 from .forms import StudentForm
@@ -62,7 +66,8 @@ class LogInView(LoginProhibitedMixin, View):
     """Display login screen and handle user login."""
 
     http_method_names = ['get', 'post']
-    redirect_when_logged_in_url = settings.REDIRECT_URL_WHEN_LOGGED_IN
+    redirect_when_logged_in_url = REDIRECT_URL_WHEN_LOGGED_IN = 'dashboard' #made changes here
+
 
     def get(self, request):
         """Display log in template."""
@@ -74,7 +79,7 @@ class LogInView(LoginProhibitedMixin, View):
         """Handle log in attempt."""
 
         form = LogInForm(request.POST)
-        self.next = request.POST.get('next') or settings.REDIRECT_URL_WHEN_LOGGED_IN
+        self.next = request.POST.get('next') or 'bookings_list' #Made changes in here!!!
         user = form.get_user()
         if user is not None:
             login(request, user)
@@ -226,3 +231,53 @@ def delete_student(request,student_id):
             # If request is GET, show confirmation page
         context = f'Are you sure you want to delete the following student: "{student.name}".'
         return render(request,'delete_student.html', {'context': context,'student':student})
+    
+#@login_required
+def bookings_list(request):
+    """Display a list of all bookings (Page 1)."""
+    bookings = Booking.objects.all()
+    return render(request, 'myTests/booking_list.html', {'bookings': bookings})
+
+# Create Booking
+def booking_create(request):
+    """Handle creation of a new booking."""
+    if request.method == 'POST':
+        form = BookingForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('booking_list')
+    else:
+        form = BookingForm()
+    return render(request, 'myTests/booking_create.html', {'form': form})
+
+# Show Booking (Detail View)
+def booking_show(request, pk):
+    """Show details of a specific booking."""
+    booking = get_object_or_404(Booking, pk=pk)
+    return render(request, 'myTests/booking_show.html', {'booking': booking})
+
+#@login_required
+def booking_update(request, pk):
+    """Update a specific booking (Page 3)."""
+    booking = get_object_or_404(Booking, pk=pk)
+    if request.method == 'POST':
+        form = BookingForm(request.POST, instance=booking)
+        if form.is_valid():
+            form.save()
+            return redirect('booking_list')
+    else:
+        form = BookingForm(instance=booking)
+    return render(request, 'myTests/booking_update.html', {'form': form})
+
+#@login_required
+def booking_delete(request, pk):
+    """Display confirmation page and delete a booking (Page 4)."""
+    booking = get_object_or_404(Booking, pk=pk)
+    if request.method == 'POST':
+        booking.delete()
+        return redirect('booking_list')
+    return render(request, 'myTests/booking_delete.html', {'booking': booking})
+#for tests only
+def inside_welcome(request):
+    """Render the inside welcome page."""
+    return render(request, 'myTests/inside_welcome.html')

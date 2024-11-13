@@ -2,6 +2,7 @@ from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from libgravatar import Gravatar
+from django.db import models
 
 class User(AbstractUser):
     """Model used for user authentication, and team member related information."""
@@ -23,7 +24,7 @@ class User(AbstractUser):
         """Model options."""
 
         ordering = ['last_name', 'first_name']
-
+    @property
     def full_name(self):
         """Return a string containing the user's full name."""
 
@@ -63,3 +64,26 @@ class Student(models.Model):
         return f"{self.name} ({self.username}) is {allocation_status}."
 
 
+class Booking(models.Model):
+    """Model to represent a booking between a student and a tutor."""
+    TERM1 = 'Term1'
+    TERM2 = 'Term2'
+    TERM3 = 'Term3'
+
+    TERM_CHOICES = [
+        (TERM1, 'Term 1'),
+        (TERM2, 'Term 2'),
+        (TERM3, 'Term 3'),
+    ]
+
+    term = models.CharField(max_length=10, choices=TERM_CHOICES, default=TERM1)
+    student = models.ForeignKey(User, related_name='student_bookings', on_delete=models.CASCADE)
+    tutor = models.ForeignKey(User, related_name='tutor_bookings', on_delete=models.CASCADE)
+
+    class Meta:
+        """Model options."""
+        ordering = ['term', 'student', 'tutor']
+
+    def __str__(self):
+        """Return a readable string representation of the booking."""
+        return f'{self.term} | Student: {self.student.full_name} | Tutor: {self.tutor.full_name}'

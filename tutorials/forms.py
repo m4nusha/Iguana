@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from .models import User
+from .models import User, Booking
 
 from .models import Student
 
@@ -151,3 +151,9 @@ class StudentForm(forms.ModelForm):
 
         return cleaned_data
 
+class BookingForm(forms.ModelForm):
+    """Form to create or update a booking."""
+
+    class Meta:
+        model = Booking
+        fields = ['term', 'student', 'tutor']
