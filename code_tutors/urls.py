@@ -47,7 +47,13 @@ urlpatterns = [
     path('bookings/delete/<int:pk>/', views.booking_delete, name='booking_delete'),
 
     path('bookings/create/', views.booking_create, name='booking_create'),  # Create Booking
-    path('bookings/show/<int:pk>/', views.booking_show, name='booking_show'),  # Show Booking
-    
+    path('bookings/show/<int:pk>/', views.booking_detail, name='booking_detail'),  # Booking details
+    path('bookings/<int:booking_id>/sessions/', views.booking_show, name='session_list'),
+    path('sessions/<int:pk>/', views.session_show, name='session_show'),
+    path('sessions/update/<int:pk>/', views.SessionUpdateView.as_view(), name='session_update'),
+    path('sessions/delete/<int:pk>/', views.SessionDeleteView.as_view(), name='session_delete'),
+
+
+    path('bookings/<int:booking_id>/sessions/create/', views.session_create, name='session_create'),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
