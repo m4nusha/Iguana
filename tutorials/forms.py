@@ -2,13 +2,9 @@ from datetime import date, datetime, timedelta
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from .models import Student, StudentRequest
-from .models import Tutor
-from .models import User, Booking, Session
+from .models import Student, StudentRequest, Tutor, User, Booking, Session
 from django.core.exceptions import ValidationError
-from .models import User, Booking
 
-from .models import Student
 
 
 class LogInForm(forms.Form):
@@ -362,3 +358,17 @@ class UpdateSessionForm(forms.ModelForm):
         
         return cleaned_data
         fields = ['term', 'student', 'tutor']
+
+
+class SessionForm(forms.ModelForm):
+    class Meta:
+        model = Session
+        fields = [
+            'session_date', 
+            'session_time', 
+            'duration', 
+            'lesson_type', 
+            'venue', 
+            'amount', 
+            'payment_status'
+        ]
