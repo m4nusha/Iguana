@@ -1,0 +1,15 @@
+
+<html>
+<head>
+    <title>New Student</title>
+</head>
+<body>
+    <h1>Create a new student</h1>
+    <form action="{% url 'create_student' %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Create">
+    </form>
+    <a href="{% url 'students' %}">Back to Students list</a>
+</body>
+</html>

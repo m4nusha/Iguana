@@ -11,6 +11,10 @@ from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
 
+from .models import Student
+from .forms import StudentForm
+from django.http import HttpResponse, HttpResponseRedirect,Http404
+
 
 @login_required
 def dashboard(request):
@@ -151,3 +155,74 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+
+
+def students(request):
+    """Display a list of all students."""
+    context = {'students': Student.objects.all()}
+    return render (request, 'students.html', context)
+
+def show_student(request, student_id):
+    """Display further info on a student"""
+    try:
+        context = {'student': Student.objects.get(id=student_id)}
+    except Student.DoesNotExist:
+        raise Http404(f"Could not find a student with primary key {student_id}")
+    else:
+        return render(request, 'show_student.html', context)
+
+def create_student(request):
+    """Create a new student to the database"""
+    #check first if it's a post request
+    if request.method == "POST":
+        form = StudentForm(request.POST)
+        #then check if the data entered is valid
+        if form.is_valid():
+            try:
+                form.save()
+            except:
+                form.add_error(None, "It was not possible to save this student to the database,")
+            else:
+                path = reverse('students')     #go to  list of students
+                return HttpResponseRedirect(path)
+    else:
+        form = StudentForm()
+    return render(request, 'create_student.html', {'form':form})
+
+
+def update_student(request,student_id):
+    try:
+        student = Student.objects.get(id=student_id)
+    except Student.DoesNotExist:
+        raise Http404(f"Could not find a student with primary key {student_id}")
+    else:
+        if request.method == "POST":
+            form = StudentForm(request.POST, instance=student)
+            if form.is_valid():
+                try:
+                    form.save()
+                except:
+                    form.add_error(None, "It was not possible to save this student to the database,")
+                else:
+                    path = reverse('students')  # go to list of students
+                    return HttpResponseRedirect(path)
+        else:
+            form = StudentForm(instance=student)
+        return render(request,'update_student.html', {'form':form, 'student':student})
+
+
+def delete_student(request,student_id):
+    try:
+        student = Student.objects.get(id=student_id)
+    except Student.DoesNotExist:
+        raise Http404(f"Could not find a student with primary key {student_id}")
+
+    if request.method == "POST":
+            # If the user confirmed deletion, delete the student and redirect
+        student.delete()
+        path = reverse('students')  # go to list of students
+        return HttpResponseRedirect(path)
+    else:
+            # If request is GET, show confirmation page
+        context = f'Are you sure you want to delete the following student: "{student.name}".'
+        return render(request,'delete_student.html', {'context': context,'student':student})

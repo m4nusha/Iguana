@@ -4,6 +4,9 @@ from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
 from .models import User
 
+from .models import Student
+
+
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
 
@@ -108,3 +111,43 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
             password=self.cleaned_data.get('new_password'),
         )
         return user
+
+
+class StudentForm(forms.ModelForm):
+    """Form to create or update students"""
+    class Meta:
+        model = Student
+        fields = ['name', 'username', 'email', 'allocated']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email')
+        username = cleaned_data.get('username')
+        allocated = cleaned_data.get('allocated')
+
+        # Get the current student instance ID if updating, otherwise None
+        student_id = self.instance.id if self.instance and self.instance.id else None
+
+        # Case-insensitive email validation
+        if email:
+            student_id = self.instance.id if self.instance else None
+            # Ensure email is unique, case insensitive, excluding the current student's email
+            if Student.objects.exclude(id=student_id).filter(email=email.lower()).exists():
+                self.add_error('email', "A student with this email already exists.")
+            # Normalize email to lowercase
+            cleaned_data['email'] = email.lower()
+
+        # Ensure username is unique (excluding the current student's username)
+        if username:
+            if Student.objects.exclude(id=student_id).filter(username=username).exists():
+                self.add_error('username', "This username is already taken.")
+
+        # Boolean validation for allocated
+        if allocated is not None:
+            if isinstance(allocated, bool):
+                pass  # Valid boolean value
+            else:
+                self.add_error('allocated', "Allocated must be a boolean value.")
+
+        return cleaned_data
+

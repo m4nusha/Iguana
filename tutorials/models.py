@@ -40,3 +40,26 @@ class User(AbstractUser):
         """Return a URL to a miniature version of the user's gravatar."""
         
         return self.gravatar(size=60)
+
+class Student(models.Model):
+    name = models.CharField(max_length=255)
+    username = models.CharField(max_length=255, unique=True)
+    email = models.EmailField(unique=True)
+    allocated = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        # Normalize email to lowercase
+        if self.email:
+            self.email = self.email.lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        # Show Yes/No for the boolean field
+        return f"{self.name} ({self.username}) ({self.email}), Allocated? {'Yes' if self.allocated else 'No'}"
+
+    def description(self):
+        # Provide a short, user-readable description excluding email
+        allocation_status = 'allocated' if self.allocated else 'not allocated'
+        return f"{self.name} ({self.username}) is {allocation_status}."
+
+

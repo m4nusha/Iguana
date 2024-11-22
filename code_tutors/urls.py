@@ -29,5 +29,10 @@ urlpatterns = [
     path('password/', views.PasswordView.as_view(), name='password'),
     path('profile/', views.ProfileUpdateView.as_view(), name='profile'),
     path('sign_up/', views.SignUpView.as_view(), name='sign_up'),
+    path('students/',views.students, name='students'),
+    path('students/<int:student_id>',views.show_student, name='show_student'),
+    path('create_student/',views.create_student, name='create_student'),
+    path('update_student/<int:student_id>', views.update_student, name='update_student'),
+    path('delete_student/<int:student_id>', views.delete_student, name='delete_student'),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
