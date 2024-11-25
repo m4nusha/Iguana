@@ -36,7 +36,7 @@ class UpdateSessionViewTestCase(TestCase):
         """test accessing the session update view with a GET request"""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/session_update.html')
+        self.assertTemplateUsed(response, 'bookings/sessions/session_update.html')
         self.assertIn('form', response.context)
         self.assertTrue(response.context['form'].instance.pk == self.session.pk)
 
@@ -58,7 +58,7 @@ class UpdateSessionViewTestCase(TestCase):
         invalid_data['session_date'] = ''
         response = self.client.post(self.url, data=invalid_data)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/session_update.html')
+        self.assertTemplateUsed(response, 'bookings/sessions/session_update.html')
         form_errors = response.context['form'].errors
         self.assertIn('session_date', form_errors)
 

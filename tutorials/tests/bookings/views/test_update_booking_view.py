@@ -25,7 +25,7 @@ class UpdateBookingViewTest(TestCase):
         """test accessing the update booking view with a GET request"""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/booking_update.html')
+        self.assertTemplateUsed(response, 'bookings/booking_update.html')
         self.assertIn('form', response.context)
         self.assertTrue(response.context['form'].instance.pk == self.booking.pk)
 
@@ -45,7 +45,7 @@ class UpdateBookingViewTest(TestCase):
         self.booking.refresh_from_db()
         self.assertEqual(self.booking.term, before_term)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/booking_update.html')
+        self.assertTemplateUsed(response, 'bookings/booking_update.html')
         self.assertIn('term', response.context['form'].errors)
 
     def test_update_booking_redirects_on_success(self):
@@ -61,7 +61,7 @@ class UpdateBookingViewTest(TestCase):
         after_count = Booking.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/booking_update.html')
+        self.assertTemplateUsed(response, 'bookings/booking_update.html')
         self.assertIn('__all__', response.context['form'].errors)
 
     def test_update_booking_for_invalid_booking(self):

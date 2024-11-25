@@ -236,7 +236,7 @@ def delete_student(request,student_id):
 def bookings_list(request):
     """Display a list of all bookings (Page 1)."""
     bookings = Booking.objects.all()
-    return render(request, 'myTests/booking_list.html', {'bookings': bookings})
+    return render(request, 'bookings/booking_list.html', {'bookings': bookings})
 
 # Create Booking
 def booking_create(request):
@@ -248,7 +248,7 @@ def booking_create(request):
             return redirect('booking_list')
     else:
         form = BookingForm()
-    return render(request, 'myTests/booking_create.html', {'form': form})
+    return render(request, 'bookings/booking_create.html', {'form': form})
 
 #@login_required
 def booking_update(request, pk):
@@ -261,7 +261,7 @@ def booking_update(request, pk):
             return redirect('booking_list')
     else:
         form = BookingForm(instance=booking)
-    return render(request, 'myTests/booking_update.html', {'form': form})
+    return render(request, 'bookings/booking_update.html', {'form': form})
 
 #@login_required
 def booking_delete(request, pk):
@@ -270,22 +270,22 @@ def booking_delete(request, pk):
     if request.method == 'POST':
         booking.delete()
         return redirect('booking_list')
-    return render(request, 'myTests/booking_delete.html', {'booking': booking})
+    return render(request, 'bookings/booking_delete.html', {'booking': booking})
 #for tests only
-def inside_welcome(request):
+def welcome(request):
     """Render the inside welcome page."""
-    return render(request, 'myTests/inside_welcome.html')
+    return render(request, 'welcome.html')
 
 def booking_detail(request, pk):
     """Show details of a specific booking."""
     booking = get_object_or_404(Booking, pk=pk)
-    return render(request, 'myTests/booking_show.html', {'booking': booking})
+    return render(request, 'bookings/booking_show.html', {'booking': booking})
 
 def booking_show(request, booking_id):
     """List all sessions for a specific booking."""
     booking = get_object_or_404(Booking, id=booking_id)
     sessions = booking.sessions.all()
-    return render(request, 'myTests/booking_show.html', {'booking': booking, 'sessions': sessions})
+    return render(request, 'bookings/booking_show.html', {'booking': booking, 'sessions': sessions})
 
 def session_create(request, booking_id):
     """Create a new session for a specific booking."""
@@ -299,18 +299,18 @@ def session_create(request, booking_id):
             return redirect('session_list', booking_id=booking.id)
     else:
         form = SessionForm()
-    return render(request, 'myTests/session_create.html', {'form': form, 'booking': booking})
+    return render(request, 'bookings/sessions/session_create.html', {'form': form, 'booking': booking})
 
 def session_show(request, pk):
     """Show details of a specific session."""
     session = get_object_or_404(Session, pk=pk)
-    return render(request, 'myTests/session_show.html', {'session': session})
+    return render(request, 'bookings/sessions/session_show.html', {'session': session})
 
 class SessionUpdateView(UpdateView):
     """Update a specific session."""
     model = Session
     fields = ['session_date', 'session_time', 'duration', 'lesson_type', 'venue', 'amount', 'payment_status']
-    template_name = 'myTests/session_update.html'
+    template_name = 'bookings/sessions/session_update.html'
 
     def get_success_url(self):
         # Use the booking ID of the related session
@@ -320,7 +320,7 @@ class SessionUpdateView(UpdateView):
 class SessionDeleteView(DeleteView):
     """Delete a specific session."""
     model = Session
-    template_name = 'myTests/session_delete.html'
+    template_name = 'bookings/sessions/session_delete.html'
 
     def get_success_url(self):
         # Use the booking ID of the related session

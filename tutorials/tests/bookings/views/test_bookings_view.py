@@ -18,7 +18,7 @@ class BookingsListTest(TestCase):
         """test that the bookings list view returns the correct response"""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/booking_list.html')
+        self.assertTemplateUsed(response, 'bookings/booking_list.html')
         self.assertIn('bookings', response.context)
         bookings = response.context['bookings']
         self.assertEqual(bookings.count(), 2)

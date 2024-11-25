@@ -20,7 +20,7 @@ class CreateBookingViewTest(TestCase):
         """test accessing the create booking view with a GET request"""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/booking_create.html')
+        self.assertTemplateUsed(response, 'bookings/booking_create.html')
         self.assertIn('form', response.context)
         self.assertFalse(response.context['form'].is_bound)
 
@@ -40,7 +40,7 @@ class CreateBookingViewTest(TestCase):
         after_count = Booking.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/booking_create.html')
+        self.assertTemplateUsed(response, 'bookings/booking_create.html')
         self.assertIn('term', response.context['form'].errors)
 
     def test_duplicate_booking_is_not_created(self):
@@ -51,7 +51,7 @@ class CreateBookingViewTest(TestCase):
         after_count = Booking.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/booking_create.html')
+        self.assertTemplateUsed(response, 'bookings/booking_create.html')
         self.assertIn('__all__', response.context['form'].errors)
 
     def test_create_booking_for_existing_booking_scenario(self):
@@ -62,7 +62,7 @@ class CreateBookingViewTest(TestCase):
         after_count = Booking.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/booking_create.html')
+        self.assertTemplateUsed(response, 'bookings/booking_create.html')
         self.assertIn('__all__', response.context['form'].errors)
 
     def test_create_booking_redirects_on_success(self):
@@ -78,7 +78,7 @@ class CreateBookingViewTest(TestCase):
         after_count = Booking.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/booking_create.html')
+        self.assertTemplateUsed(response, 'bookings/booking_create.html')
         self.assertIn('student', response.context['form'].errors)
 
     def test_create_booking_with_invalid_tutor(self):
@@ -89,7 +89,7 @@ class CreateBookingViewTest(TestCase):
         after_count = Booking.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/booking_create.html')
+        self.assertTemplateUsed(response, 'bookings/booking_create.html')
         self.assertIn('tutor', response.context['form'].errors)
 
     def test_student_and_tutor_are_the_same(self):
@@ -100,7 +100,7 @@ class CreateBookingViewTest(TestCase):
         after_count = Booking.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/booking_create.html')
+        self.assertTemplateUsed(response, 'bookings/booking_create.html')
         self.assertIn('student', response.context['form'].errors)
         self.assertIn('tutor', response.context['form'].errors)
         self.assertIn('A student cannot book themselves as a tutor.', str(response.content))

@@ -29,7 +29,7 @@ class DeleteSessionViewTest(TestCase):
         """test the GET request to the session delete page works and renders the correct template"""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/session_delete.html')
+        self.assertTemplateUsed(response, 'bookings/sessions/session_delete.html')
 
     def test_get_delete_session_with_invalid_pk(self):
         """test that an invalid session ID results in a 404 error"""

@@ -29,7 +29,7 @@ class CreateSessionViewTest(TestCase):
         """test accessing the create session view with a GET request"""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/session_create.html')
+        self.assertTemplateUsed(response, 'bookings/sessions/session_create.html')
         self.assertIn('form', response.context)
     
     def test_invalid_post_does_not_create_session(self):
@@ -41,7 +41,7 @@ class CreateSessionViewTest(TestCase):
         after_count = Session.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/session_create.html')
+        self.assertTemplateUsed(response, 'bookings/sessions/session_create.html')
         self.assertIn('session_date', response.context['form'].errors)
     
     def test_create_session_with_invalid_booking(self):
@@ -81,7 +81,7 @@ class CreateSessionViewTest(TestCase):
         after_count = Session.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/session_create.html')
+        self.assertTemplateUsed(response, 'bookings/sessions/session_create.html')
         self.assertIn('__all__', response.context['form'].errors)
 
     def test_session_duration_calculation(self):

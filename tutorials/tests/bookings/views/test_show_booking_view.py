@@ -34,7 +34,7 @@ class ShowBookingViewTest(TestCase):
         """test that the booking and its sessions are displayed correctly"""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/booking_show.html')
+        self.assertTemplateUsed(response, 'bookings/booking_show.html')
         self.assertIn('booking', response.context)
         self.assertEqual(response.context['booking'].id, self.booking.id)
         self.assertIn('sessions', response.context)

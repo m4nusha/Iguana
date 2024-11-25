@@ -22,7 +22,7 @@ class DeleteBookingViewTest(TestCase):
         self.client.login(username='testuser', password='12345')
         response = self.client.get(self.delete_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'myTests/booking_delete.html')
+        self.assertTemplateUsed(response, 'bookings/booking_delete.html')
 
     def test_get_delete_booking_with_invalid_id(self):
         """test that a GET request with an invalid booking ID returns a 404 error"""
