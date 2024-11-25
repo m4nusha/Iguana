@@ -7,8 +7,8 @@ class UserModelTestCase(TestCase):
     """Unit tests for the User model."""
 
     fixtures = [
-        'tutorials/tests/fixtures/default_user.json',
-        'tutorials/tests/fixtures/other_users.json'
+        'tutorials/tests/users/fixtures/default_user.json',
+        'tutorials/tests/users/fixtures/other_users.json'
     ]
 
     GRAVATAR_URL = "https://www.gravatar.com/avatar/363c1b0cd64dadffb867236a00e62986"

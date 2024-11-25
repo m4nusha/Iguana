@@ -7,7 +7,7 @@ from tutorials.models import User
 class LogInFormTestCase(TestCase):
     """Unit tests of the log in form."""
 
-    fixtures = ['tutorials/tests/fixtures/default_user.json']
+    fixtures = ['tutorials/tests/users/fixtures/default_user.json']
 
     def setUp(self):
         self.form_input = {'username': '@janedoe', 'password': 'Password123'}
