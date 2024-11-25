@@ -10,6 +10,6 @@
         {{ form.as_p }}
         <button type="submit">Update</button>
     </form>
-    <a href="{% url 'session_show' object.pk %}">Cancel</a>
+    <button onclick="history.back()">Cancel</button>
 </body>
 </html>
