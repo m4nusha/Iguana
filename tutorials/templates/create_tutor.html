@@ -1,15 +1,14 @@
-
-<html>
+<html lang="en">
 <head>
-    <title>New Tutor</title>
+    <meta charset="UTF-8">
+    <title>Create Tutor</title>
 </head>
 <body>
-    <h1>Create a new Tutor</h1>
-    <form action="{% url 'create_tutor' %}" method="post">
+    <h1>Create Tutor</h1>
+    <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <input type="submit" value="Create">
+        <button type="submit">Save</button>
     </form>
-    <a href="{% url 'tutors' %}">Back to Tutors List</a>
 </body>
 </html>

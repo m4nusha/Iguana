@@ -1,6 +1,7 @@
 from django.test import TestCase
 from tutorials.forms import TutorForm
-from tutorials.models import Tutor
+from tutorials.models import Tutor, User
+from django.core.exceptions import ValidationError
 
 class TutorFormTestCase(TestCase):
     def setUp(self):
@@ -51,3 +52,24 @@ class TutorFormTestCase(TestCase):
         )
         form = TutorForm(data=self.form_input)
         self.assertFalse(form.is_valid())
+
+
+    # Test: Username must be a valid User
+    def test_username_must_be_valid_user(self):
+        self.tutor.username = None  # Setting username to None
+        with self.assertRaises(ValidationError):
+            self.tutor.full_clean()
+
+    # Test: Username uniqueness (handled by the User model, not Tutor)
+    def test_tutor_can_reference_same_username(self):
+        # Create another tutor referencing the same username (ForeignKey)
+        self.tutor.save()
+        another_tutor = Tutor(
+            name="Jane Doe",
+            username=self.user,  # Same user reference
+            email="jane.doe2@gmail.com",
+            subject = "Java"
+        )
+        another_tutor.full_clean()  # Should not raise validation error
+        another_tutor.save()
+        self.assertEqual(Tutor.objects.count(),2)

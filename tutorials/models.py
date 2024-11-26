@@ -187,10 +187,28 @@ class Session(models.Model):
 
 
 class Tutor(models.Model):
+    SUBJECT_CHOICES = [
+        ('Python', 'Python'),
+        ('Java', 'Java'),
+        ('Javascript', 'Javascript'),
+        ('React', 'React'),
+        ('Ruby', 'Ruby'),
+        ('Go', 'Go'),
+        ('HTML/CSS', 'HTML/CSS'),
+        ('C', 'C'),
+        ('Scala', 'Scala'),
+
+    ]
+
+
     name = models.CharField(max_length=255)
-    username = models.CharField(max_length=255, unique=True) #want to make this a foreign key instead of a charfield, and then drop down from this
+    username = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tutors')
     email = models.EmailField(unique=True)
-    subject = models.CharField(max_length=255)
+    subject = models.CharField(
+        max_length=100,
+        choices=SUBJECT_CHOICES,
+        default='Python',
+    )   
     
 
     def save(self, *args, **kwargs):
@@ -200,9 +218,9 @@ class Tutor(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} ({self.username})"
+        return f"{self.name} ({self.username.username})"
 
     def description(self):
         # Provides a user-readable description excluding email
-        subject_info = f"teaches {self.subject}" if self.subject else "has no subject assigned"
-        return f"{self.name} ({self.username}) {subject_info}."
+        subject_info = f"teaches ({self.get_subject_display()})" if self.get_subject_display() else "has no subject assigned"
+        return f"{self.name} ({self.username.username}) {subject_info}."
