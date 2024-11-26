@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from libgravatar import Gravatar
 
+
 class User(AbstractUser):
     """Model used for user authentication, and team member related information."""
 
@@ -40,3 +41,25 @@ class User(AbstractUser):
         """Return a URL to a miniature version of the user's gravatar."""
         
         return self.gravatar(size=60)
+
+
+class Tutor(models.Model):
+    name = models.CharField(max_length=255)
+    username = models.CharField(max_length=255, unique=True) #want to make this a foreign key instead of a charfield, and then drop down from this
+    email = models.EmailField(unique=True)
+    subject = models.CharField(max_length=255)
+    
+
+    def save(self, *args, **kwargs):
+        # Normalize email to lowercase
+        if self.email:
+            self.email = self.email.lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.username})"
+
+    def description(self):
+        # Provides a user-readable description excluding email
+        subject_info = f"teaches {self.subject}" if self.subject else "has no subject assigned"
+        return f"{self.name} ({self.username}) {subject_info}."

@@ -2,6 +2,7 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
+from .models import Tutor
 from .models import User
 
 class LogInForm(forms.Form):
@@ -108,3 +109,35 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
             password=self.cleaned_data.get('new_password'),
         )
         return user
+
+
+############ my additions ##############
+class TutorForm(forms.ModelForm):
+    """Form for creating and updating tutors."""
+    class Meta:
+        model = Tutor
+        fields = ['name', 'username', 'email', 'subject']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email')
+        username = cleaned_data.get('username')
+
+        # Get the current tutor instance ID if updating, otherwise None
+        tutor_id = self.instance.id if self.instance and self.instance.id else None
+
+        # Case-insensitive email validation
+        if email:
+            tutor_id = self.instance.id if self.instance else None
+            # Ensure email is unique, case insensitive, excluding the current tutor's email
+            if Tutor.objects.exclude(id=tutor_id).filter(email=email.lower()).exists():
+                self.add_error('email', "A tutor with this email already exists.")
+            # Normalize email to lowercase
+            cleaned_data['email'] = email.lower()
+
+        # Ensure username is unique (excluding the current tutor's username)
+        if username:
+            if Tutor.objects.exclude(id=tutor_id).filter(username=username).exists():
+                self.add_error('username', "This username is already taken.")
+
+        return cleaned_data

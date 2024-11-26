@@ -1,0 +1,15 @@
+
+<html>
+<head>
+    <title>Delete Tutor</title>
+</head>
+<body>
+    <h1>Delete Tutor</h1>
+    <p>{{ context }}</p>
+    <form action="{% url 'delete_tutor' tutor.id %}" method="post">
+        {% csrf_token %}
+        <input type="Submit" value="Confirm">
+    </form>
+    <a href="{% url 'tutors' %}">Cancel</a>
+</body>
+</html>

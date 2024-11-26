@@ -1,0 +1,59 @@
+
+<html>
+<head>
+    <title>List of Tutors</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+    <h1>List of Tutors</h1>
+    
+    {% if tutors %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Subject</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tutor in tutors %}
+                    <tr>
+                        <td>{{ tutor.name }}</td>
+                        <td>{{ tutor.username }}</td>
+                        <td>{{ tutor.email }}</td>
+                        <td>{{ tutor.subject }}</td>
+                        <td>
+                            <a href="{% url 'show_tutor' tutor.id %}">View</a>
+                            <a href="{% url 'update_tutor' tutor.id %}">Edit</a>
+                            <a href="{% url 'delete_tutor' tutor.id %}">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No tutors available.</p>
+    {% endif %}
+</body>
+</html>
