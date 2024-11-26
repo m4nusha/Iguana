@@ -156,7 +156,7 @@ class StudentForm(forms.ModelForm):
     """Form to create or update students"""
     class Meta:
         model = Student
-        fields = ['name', 'username', 'email', 'allocated']
+        fields = ['name', 'username', 'email', 'allocated', 'payment']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -176,10 +176,10 @@ class StudentForm(forms.ModelForm):
             # Normalize email to lowercase
             cleaned_data['email'] = email.lower()
 
-        # Ensure username is unique (excluding the current student's username)
         if username:
             if Student.objects.exclude(id=student_id).filter(username=username).exists():
-                self.add_error('username', "This username is already taken.")
+                self.add_error('username', "This user is already associated with another student.")
+
 
         # Boolean validation for allocated
         if allocated is not None:

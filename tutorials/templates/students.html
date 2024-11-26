@@ -34,6 +34,7 @@
                 <th>Username</th>
                 <th>Email</th>
                 <th>Allocated</th>
+                <th>Payment</th> 
                 <th>Actions</th>
             </tr>
         </thead>
@@ -50,6 +51,7 @@
                         No
                     {% endif %}
                 </td>
+                <td>{{ student.payment }}</td> 
                 <td>
                 <a href="{% url 'show_student' student.id %}">Show</a>
                 <a href="{% url 'update_student' student.id %}">Update</a>

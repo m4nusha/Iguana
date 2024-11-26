@@ -47,10 +47,23 @@ class User(AbstractUser):
         return self.gravatar(size=60)
 
 class Student(models.Model):
+    PENDING = 'Pending'
+    SUCCESSFUL = 'Successful'
+
+    PAYMENT_CHOICES = [
+        (PENDING, 'Pending'),
+        (SUCCESSFUL, 'Successful'),
+    ]
+
     name = models.CharField(max_length=255)
-    username = models.CharField(max_length=255, unique=True)
+    username = models.ForeignKey(User, on_delete=models.CASCADE, related_name='students')  # ForeignKey
     email = models.EmailField(unique=True)
     allocated = models.BooleanField(default=False)
+    payment = models.CharField( 
+        max_length=10,
+        choices=PAYMENT_CHOICES,
+        default=PENDING,
+    )
 
     def save(self, *args, **kwargs):
         # Normalize email to lowercase
@@ -60,12 +73,12 @@ class Student(models.Model):
 
     def __str__(self):
         # Show Yes/No for the boolean field
-        return f"{self.name} ({self.username}) ({self.email}), Allocated? {'Yes' if self.allocated else 'No'}"
+        return f"{self.name} ({self.username.username}) ({self.email}), Allocated? {'Yes' if self.allocated else 'No'}, Payment Status: {self.payment}"
 
     def description(self):
         # Provide a short, user-readable description excluding email
         allocation_status = 'allocated' if self.allocated else 'not allocated'
-        return f"{self.name} ({self.username}) is {allocation_status}."
+        return f"{self.name} ({self.username.username}) is {allocation_status} and has payment status {self.payment}."
 
 
 class Booking(models.Model):
