@@ -9,7 +9,7 @@ from tutorials.tests.helpers import LogInTester
 class SignUpViewTestCase(TestCase, LogInTester):
     """Tests of the sign up view."""
 
-    fixtures = ['tutorials/tests/fixtures/default_user.json']
+    fixtures = ['tutorials/tests/users/fixtures/default_user.json']
 
     def setUp(self):
         self.url = reverse('sign_up')

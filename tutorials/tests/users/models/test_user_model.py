@@ -7,8 +7,8 @@ class UserModelTestCase(TestCase):
     """Unit tests for the User model."""
 
     fixtures = [
-        'tutorials/tests/fixtures/default_user.json',
-        'tutorials/tests/fixtures/other_users.json'
+        'tutorials/tests/users/fixtures/default_user.json',
+        'tutorials/tests/users/fixtures/other_users.json'
     ]
 
     GRAVATAR_URL = "https://www.gravatar.com/avatar/363c1b0cd64dadffb867236a00e62986"
@@ -124,7 +124,7 @@ class UserModelTestCase(TestCase):
 
 
     def test_full_name_must_be_correct(self):
-        full_name = self.user.full_name()
+        full_name = self.user.full_name
         self.assertEqual(full_name, "John Doe")
 
 

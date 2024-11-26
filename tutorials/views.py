@@ -6,10 +6,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import redirect, render
 from django.views import View
-from django.views.generic.edit import FormView, UpdateView
-from django.urls import reverse
+from django.views.generic.edit import FormView, UpdateView, DeleteView
+from django.urls import reverse, reverse_lazy
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
+from .models import Booking, Session
+from .forms import BookingForm, SessionForm
+from django.shortcuts import get_object_or_404
+
 
 from .models import Student
 from .forms import StudentForm
@@ -62,7 +66,8 @@ class LogInView(LoginProhibitedMixin, View):
     """Display login screen and handle user login."""
 
     http_method_names = ['get', 'post']
-    redirect_when_logged_in_url = settings.REDIRECT_URL_WHEN_LOGGED_IN
+    redirect_when_logged_in_url = REDIRECT_URL_WHEN_LOGGED_IN = 'dashboard' #made changes here
+
 
     def get(self, request):
         """Display log in template."""
@@ -74,7 +79,7 @@ class LogInView(LoginProhibitedMixin, View):
         """Handle log in attempt."""
 
         form = LogInForm(request.POST)
-        self.next = request.POST.get('next') or settings.REDIRECT_URL_WHEN_LOGGED_IN
+        self.next = request.POST.get('next') or 'booking_list' #Made changes in here!!!
         user = form.get_user()
         if user is not None:
             login(request, user)
@@ -226,3 +231,97 @@ def delete_student(request,student_id):
             # If request is GET, show confirmation page
         context = f'Are you sure you want to delete the following student: "{student.name}".'
         return render(request,'delete_student.html', {'context': context,'student':student})
+    
+#@login_required
+def bookings_list(request):
+    """Display a list of all bookings (Page 1)."""
+    bookings = Booking.objects.all()
+    return render(request, 'bookings/booking_list.html', {'bookings': bookings})
+
+# Create Booking
+def booking_create(request):
+    """Handle creation of a new booking."""
+    if request.method == 'POST':
+        form = BookingForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('booking_list')
+    else:
+        form = BookingForm()
+    return render(request, 'bookings/booking_create.html', {'form': form})
+
+#@login_required
+def booking_update(request, pk):
+    """Update a specific booking (Page 3)."""
+    booking = get_object_or_404(Booking, pk=pk)
+    if request.method == 'POST':
+        form = BookingForm(request.POST, instance=booking)
+        if form.is_valid():
+            form.save()
+            return redirect('booking_list')
+    else:
+        form = BookingForm(instance=booking)
+    return render(request, 'bookings/booking_update.html', {'form': form})
+
+#@login_required
+def booking_delete(request, pk):
+    """Display confirmation page and delete a booking (Page 4)."""
+    booking = get_object_or_404(Booking, pk=pk)
+    if request.method == 'POST':
+        booking.delete()
+        return redirect('booking_list')
+    return render(request, 'bookings/booking_delete.html', {'booking': booking})
+#for tests only
+def welcome(request):
+    """Render the inside welcome page."""
+    return render(request, 'welcome.html')
+
+def booking_detail(request, pk):
+    """Show details of a specific booking."""
+    booking = get_object_or_404(Booking, pk=pk)
+    return render(request, 'bookings/booking_show.html', {'booking': booking})
+
+def booking_show(request, booking_id):
+    """List all sessions for a specific booking."""
+    booking = get_object_or_404(Booking, id=booking_id)
+    sessions = booking.sessions.all()
+    return render(request, 'bookings/booking_show.html', {'booking': booking, 'sessions': sessions})
+
+def session_create(request, booking_id):
+    """Create a new session for a specific booking."""
+    booking = get_object_or_404(Booking, id=booking_id)
+    if request.method == 'POST':
+        form = SessionForm(request.POST)
+        if form.is_valid():
+            new_session = form.save(commit=False)
+            new_session.booking = booking
+            new_session.save()
+            return redirect('session_list', booking_id=booking.id)
+    else:
+        form = SessionForm()
+    return render(request, 'bookings/sessions/session_create.html', {'form': form, 'booking': booking})
+
+def session_show(request, pk):
+    """Show details of a specific session."""
+    session = get_object_or_404(Session, pk=pk)
+    return render(request, 'bookings/sessions/session_show.html', {'session': session})
+
+class SessionUpdateView(UpdateView):
+    """Update a specific session."""
+    model = Session
+    fields = ['session_date', 'session_time', 'duration', 'lesson_type', 'venue', 'amount', 'payment_status']
+    template_name = 'bookings/sessions/session_update.html'
+
+    def get_success_url(self):
+        # Use the booking ID of the related session
+        return reverse_lazy('session_list', kwargs={'booking_id': self.object.booking.id})
+
+
+class SessionDeleteView(DeleteView):
+    """Delete a specific session."""
+    model = Session
+    template_name = 'bookings/sessions/session_delete.html'
+
+    def get_success_url(self):
+        # Use the booking ID of the related session
+        return reverse_lazy('session_list', kwargs={'booking_id': self.object.booking.id})

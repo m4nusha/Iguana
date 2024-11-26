@@ -6,7 +6,7 @@ from tutorials.models import User
 class HomeViewTestCase(TestCase):
     """Tests of the home view."""
 
-    fixtures = ['tutorials/tests/fixtures/default_user.json']
+    fixtures = ['tutorials/tests/users/fixtures/default_user.json']
 
     def setUp(self):
         self.url = reverse('home')

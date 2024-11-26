@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Session</title>
+</head>
+<body>
+    <h1>Update Session</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Update</button>
+    </form>
+    <button onclick="history.back()">Cancel</button>
+</body>
+</html>

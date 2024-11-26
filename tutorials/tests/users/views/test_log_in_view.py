@@ -9,7 +9,7 @@ from tutorials.tests.helpers import LogInTester, MenuTesterMixin, reverse_with_n
 class LogInViewTestCase(TestCase, LogInTester, MenuTesterMixin):
     """Tests of the log in view."""
 
-    fixtures = ['tutorials/tests/fixtures/default_user.json']
+    fixtures = ['tutorials/tests/users/fixtures/default_user.json']
 
     def setUp(self):
         self.url = reverse('log_in')
