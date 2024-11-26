@@ -93,10 +93,5 @@ class DeleteSessionViewTest(TestCase):
         session_id = self.session.id
         self.client.login(username='testuser', password='12345')
         self.client.post(self.url, follow=True)
-        response = self.client.get(reverse('session_detail', kwargs={'pk': session_id}))
+        response = self.client.get(reverse('session_show', kwargs={'pk': session_id}))
         self.assertEqual(response.status_code, 404)
-
-
-
-
-

@@ -10,7 +10,7 @@ class DeleteBookingViewTest(TestCase):
         self.user = User.objects.create_user(username='testuser', password='12345')
         self.booking = Booking.objects.create(student=self.user, tutor=self.user)
         self.delete_url = reverse('booking_delete', kwargs={'pk': self.booking.id})
-        self.booking_url = reverse('booking_show', kwargs={'booking_id': self.booking.id})
+        self.booking_url = reverse('session_list', kwargs={'booking_id': self.booking.id})
         self.booking_list_url = reverse('booking_list')
 
     def test_delete_booking_url(self):
@@ -90,6 +90,6 @@ class DeleteBookingViewTest(TestCase):
         booking_id = self.booking.id
         self.client.login(username='testuser', password='12345')
         self.client.post(self.delete_url, follow=True)
-        response = self.client.get(reverse('booking_show', kwargs={'booking_id': booking_id}))
+        response = self.client.get(reverse('session_list', kwargs={'booking_id': booking_id}))
         self.assertEqual(response.status_code, 404)
 

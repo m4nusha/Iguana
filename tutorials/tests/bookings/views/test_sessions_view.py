@@ -39,14 +39,15 @@ class SessionsListTest(TestCase):
     def test_get_sessions(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'bookings/sessions/session_list.html')
+        self.assertTemplateUsed(response, 'bookings/booking_show.html')
         self.assertIn('sessions', response.context)
         sessions = response.context['sessions']
         self.assertEqual(sessions.count(), 2)
-
+    
     def test_no_sessions(self):
-        Session.objects.all().delete()
+        """test the response when no sessions are available"""
+        self.booking.sessions.all().delete()
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'bookings/sessions/session_list.html')
-        self.assertContains(response, "No sessions available for this booking.")
+        self.assertContains(response, "No sessions available.")
+        self.assertEqual(response.context['sessions'].count(), 0)

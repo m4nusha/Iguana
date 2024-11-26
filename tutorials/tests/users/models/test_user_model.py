@@ -124,7 +124,7 @@ class UserModelTestCase(TestCase):
 
 
     def test_full_name_must_be_correct(self):
-        full_name = self.user.full_name()
+        full_name = self.user.full_name
         self.assertEqual(full_name, "John Doe")
 
 

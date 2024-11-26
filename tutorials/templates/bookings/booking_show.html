@@ -1,31 +1,35 @@
 <h1>Sessions for {{ booking.student.full_name }} with {{ booking.tutor.full_name }} ({{ booking.term }})</h1>
 <a href="{% url 'session_create' booking.id %}"><button>Create Session</button></a>
-<table>
-    <tr>
-        <th>Date</th>
-        <th>Time</th>
-        <th>Duration</th>
-        <th>Type</th>
-        <th>Venue</th>
-        <th>Amount</th>
-        <th>Payment</th>
-        <th>Actions</th>
-    </tr>
-    {% for session in sessions %}
-    <tr>
-        <td>{{ session.session_date|date:"d/m/Y" }}</td>
-        <td>{{ session.session_time|time:"H:i" }}</td>
-        <td>{{ session.duration }}</td>
-        <td>{{ session.lesson_type }}</td>
-        <td>{{ session.venue }}</td>
-        <td>${{ session.amount }}</td>
-        <td>{{ session.payment_status }}</td>
-        <td>
-            <a href="{% url 'session_update' session.id %}"><button>Update</button></a>
-            <a href="{% url 'session_delete' session.id %}"><button>Delete</button></a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+{% if sessions %}
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Duration</th>
+            <th>Type</th>
+            <th>Venue</th>
+            <th>Amount</th>
+            <th>Payment</th>
+            <th>Actions</th>
+        </tr>
+        {% for session in sessions %}
+        <tr>
+            <td>{{ session.session_date|date:"d/m/Y" }}</td>
+            <td>{{ session.session_time|time:"H:i" }}</td>
+            <td>{{ session.duration }}</td>
+            <td>{{ session.lesson_type }}</td>
+            <td>{{ session.venue }}</td>
+            <td>${{ session.amount }}</td>
+            <td>{{ session.payment_status }}</td>
+            <td>
+                <a href="{% url 'session_update' session.id %}"><button>Update</button></a>
+                <a href="{% url 'session_delete' session.id %}"><button>Delete</button></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No sessions available.</p>
+{% endif %}
 <a href="{% url 'booking_list' %}"><button>Back to Bookings</button></a>
 

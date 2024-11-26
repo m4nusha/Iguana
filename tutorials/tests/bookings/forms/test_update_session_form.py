@@ -6,15 +6,16 @@ from tutorials.forms import UpdateSessionForm
 from tutorials.models import Session, Booking, User
 from datetime import date, time, timedelta
 
-class UpdateSessionFormTestCase(TestCase):
+class UpdateSessionFormTest(TestCase):
     """unit tests for the Update Session Form"""
     def setUp(self):
         self.student = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
         self.tutor = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
         self.existing_booking = Booking.objects.create(term="Term1", student=self.student, tutor=self.tutor)
+        future_date = date.today() + timedelta(days=1)
         self.existing_session = Session.objects.create(
             booking=self.existing_booking,
-            session_date=date(2024, 11, 25),
+            session_date=future_date,
             session_time=time(10, 0),
             duration=timedelta(hours=1),
             lesson_type=Session.TYPE_WEEKLY,
@@ -23,7 +24,7 @@ class UpdateSessionFormTestCase(TestCase):
             payment_status=Session.PAYMENT_PENDING
         )
         self.valid_data = {
-            "session_date": date(2024, 11, 26),
+            "session_date": date.today() + timedelta(days=2),
             "session_time": time(11, 0),
             "duration": timedelta(hours=1),
             "lesson_type": Session.TYPE_FORTNIGHT,

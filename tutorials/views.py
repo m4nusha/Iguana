@@ -79,7 +79,7 @@ class LogInView(LoginProhibitedMixin, View):
         """Handle log in attempt."""
 
         form = LogInForm(request.POST)
-        self.next = request.POST.get('next') or 'bookings_list' #Made changes in here!!!
+        self.next = request.POST.get('next') or 'booking_list' #Made changes in here!!!
         user = form.get_user()
         if user is not None:
             login(request, user)

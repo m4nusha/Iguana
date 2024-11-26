@@ -9,12 +9,12 @@ class ShowBookingViewTest(TestCase):
         self.booking = Booking.objects.create(student=self.user, tutor=self.user)
         self.session1 = Session.objects.create(booking=self.booking, session_date="2025-01-01", session_time="10:00:00")
         self.session2 = Session.objects.create(booking=self.booking, session_date="2025-01-02", session_time="11:00:00")
-        self.url = reverse('booking_show', kwargs={'booking_id': self.booking.id})
+        self.url = reverse('session_list', kwargs={'booking_id': self.booking.id})
 
     def test_show_booking(self):
         """test that the booking and its sessions are displayed correctly"""
         self.client.login(username='testuser', password='12345')
-        response = self.client.get(reverse('booking_show', kwargs={'booking_id': self.booking.id}))
+        response = self.client.get(reverse('session_list', kwargs={'booking_id': self.booking.id}))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, f"Sessions for {self.booking.student.full_name} with {self.booking.tutor.full_name} ({self.booking.term})")
         self.assertContains(response, self.session1.session_date.strftime('%d/%m/%Y'))
@@ -22,7 +22,7 @@ class ShowBookingViewTest(TestCase):
 
     def test_show_booking_404(self):
         """test that 404 is returned for a non-existing booking"""
-        response = self.client.get(reverse('booking_show', kwargs={'booking_id': 99999}))
+        response = self.client.get(reverse('session_list', kwargs={'booking_id': 99999}))
         self.assertEqual(response.status_code, 404)
 
     def test_show_booking_url(self):
@@ -45,7 +45,7 @@ class ShowBookingViewTest(TestCase):
 
     def test_get_show_booking_invalid(self):
         """test that if the booking doesn't exist, a 404 error is raised"""
-        invalid_url = reverse('booking_show', kwargs={'booking_id': 9999})
+        invalid_url = reverse('session_list', kwargs={'booking_id': 9999})
         response = self.client.get(invalid_url)
         self.assertEqual(response.status_code, 404)
     
@@ -61,4 +61,3 @@ class ShowBookingViewTest(TestCase):
         response = self.client.get(self.url)
         self.assertContains(response, f'/sessions/update/{self.session1.id}/')
         self.assertContains(response, f'/sessions/delete/{self.session2.id}/')
-
