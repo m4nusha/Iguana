@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student List</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+    <h1>Student List</h1>
+    <a href="{% url 'create_student' %}">Create Student</a>
+
+    {% if students %}
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Allocated</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td>{{ student.name }}</td>
+                <td>{{ student.username }}</td>
+                <td>{{ student.email }}</td>
+                <td>
+                    {% if student.allocated %}
+                        Yes
+                    {% else %}
+                        No
+                    {% endif %}
+                </td>
+                <td>
+                <a href="{% url 'show_student' student.id %}">Show</a>
+                <a href="{% url 'update_student' student.id %}">Update</a>
+                    <a href="{% url 'delete_student' student.id %}">Delete</a>
+
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No students available.</p>
+    {% endif %}
+</body>
+</html>
+
+
