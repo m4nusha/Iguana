@@ -1,4 +1,3 @@
-
 <html>
 <head>
     <title>List of Tutors</title>
@@ -25,7 +24,42 @@
 <body>
     <h1>List of Tutors</h1>
     <a href="{% url 'create_tutor' %}">Create Tutor</a>
+
+    <!-- Filter Section -->
+    <form method="get" action="">
+        <label for="subject">Filter by Subject:</label>
+        <select name="subject" id="subject">
+            <option value="">All Subjects</option>
+            {% for subject, subject_label in subject_choices %}
+                <option value="{{ subject }}" {% if request.GET.subject == subject %}selected{% endif %}>
+                    {{ subject_label }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter</button>
+
+        <!-- Search by Name -->
+    <label for="search">Search by Name:</label>
+    <input
+        type="text"
+        id="search"
+        name="search"
+        placeholder="Enter tutor name"
+        value="{{ search_query|default:'' }}"
+        />
     
+        <!-- Order Buttons -->
+        <label for="order">Order by Name:</label>
+        <button type="submit" name="order" value="asc" {% if current_order == 'asc' %}style="font-weight: bold;"{% endif %}>
+            A-Z
+        </button>
+        <button type="submit" name="order" value="desc" {% if current_order == 'desc' %}style="font-weight: bold;"{% endif %}>
+            Z-A
+        </button>
+    </form>
+    
+    <br>
+
     {% if tutors %}
         <table>
             <thead>

@@ -1,5 +1,53 @@
 <h1>Sessions for {{ booking.student.full_name }} with {{ booking.tutor.full_name }} ({{ booking.term }})</h1>
+
+<!-- Filter and Order Form -->
+<form method="get">
+    <label for="type">Filter by Type:</label>
+    <select name="type" id="type">
+        <option value="">All</option>
+        {% for value, label in lesson_type_choices %}
+        <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>
+            {{ label }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label for="venue">Filter by Venue:</label>
+    <select name="venue" id="venue">
+        <option value="">All</option>
+        {% for value, label in venue_choices %}
+        <option value="{{ value }}" {% if request.GET.venue == value %}selected{% endif %}>
+            {{ label }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label for="payment">Filter by Payment Status:</label>
+    <select name="payment" id="payment">
+        <option value="">All</option>
+        {% for value, label in payment_status_choices %}
+        <option value="{{ value }}" {% if request.GET.payment == value %}selected{% endif %}>
+            {{ label }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label for="order">Order by Date:</label>
+    <select name="order" id="order">
+        <option value="">Default</option>
+        <option value="closest" {% if request.GET.order == "closest" %}selected{% endif %}>
+            Closest
+        </option>
+        <option value="furthest" {% if request.GET.order == "furthest" %}selected{% endif %}>
+            Furthest
+        </option>
+    </select>
+
+    <button type="submit">Apply</button>
+</form>
+
 <a href="{% url 'session_create' booking.id %}"><button>Create Session</button></a>
+
 {% if sessions %}
     <table>
         <tr>
@@ -32,4 +80,3 @@
     <p>No sessions available.</p>
 {% endif %}
 <a href="{% url 'booking_list' %}"><button>Back to Bookings</button></a>
-

@@ -252,6 +252,11 @@ class SessionForm(forms.ModelForm):
         unique_together = ('booking', 'session_date', 'session_time')
         fields = ['booking', 'session_date', 'session_time', 'duration', 'lesson_type', 'venue', 'amount', 'payment_status']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Hide the booking field
+        self.fields['booking'].widget = forms.HiddenInput()
+        
     def clean(self):
         cleaned_data = super().clean()
         booking = cleaned_data.get('booking')

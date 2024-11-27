@@ -1,5 +1,61 @@
 <h1>Bookings</h1>
 <a href="{% url 'booking_create' %}"><button>Create Booking</button></a>
+
+<!-- Filter, Search, and Order Section -->
+<form method="get" action="">
+    <!-- Filter by Term -->
+    <label for="term">Filter by Term:</label>
+    <select name="term" id="term">
+        <option value="">All Terms</option>
+        {% for term, term_label in term_choices %}
+            <option value="{{ term }}" {% if term_filter == term %}selected{% endif %}>
+                {{ term_label }}
+            </option>
+        {% endfor %}
+    </select>
+    <!-- Apply Filters -->
+    <button type="submit">Apply</button>
+
+    <!-- Search for Student Name -->
+    <label for="student_search">Search by Student:</label>
+    <input
+        type="text"
+        id="student_search"
+        name="student_search"
+        placeholder="Enter student name"
+        value="{{ student_search|default:'' }}"
+    />
+
+    <!-- Search for Tutor Name -->
+    <label for="tutor_search">Search by Tutor:</label>
+    <input
+        type="text"
+        id="tutor_search"
+        name="tutor_search"
+        placeholder="Enter tutor name"
+        value="{{ tutor_search|default:'' }}"
+    />
+
+    <!-- Order by Name -->
+    <label for="order">Order by:</label>
+    <button type="submit" name="order" value="student_asc" {% if order_by == 'student_asc' %}style="font-weight: bold;"{% endif %}>
+        Student A-Z
+    </button>
+    <button type="submit" name="order" value="student_desc" {% if order_by == 'student_desc' %}style="font-weight: bold;"{% endif %}>
+        Student Z-A
+    </button>
+    <button type="submit" name="order" value="tutor_asc" {% if order_by == 'tutor_asc' %}style="font-weight: bold;"{% endif %}>
+        Tutor A-Z
+    </button>
+    <button type="submit" name="order" value="tutor_desc" {% if order_by == 'tutor_desc' %}style="font-weight: bold;"{% endif %}>
+        Tutor Z-A
+    </button>
+
+    
+</form>
+<br>
+
+<!-- Booking Table -->
 <table>
     <tr>
         <th>Term</th>

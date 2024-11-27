@@ -13,6 +13,7 @@ from tutorials.helpers import login_prohibited
 from .models import Booking, Session
 from .forms import BookingForm, SessionForm
 from django.shortcuts import get_object_or_404
+from django.db.models import Value, F, Func, CharField, Q
 
 
 from .models import Student
@@ -168,9 +169,45 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
 
 def students(request):
-    """Display a list of all students."""
-    context = {'students': Student.objects.all()}
-    return render (request, 'students.html', context)
+    """Display a list of all students with filtering, sorting, and searching options."""
+    # Get filter and search parameters from the request
+    allocated = request.GET.get('allocated')  # Filter for allocation status
+    payment = request.GET.get('payment')  # Filter for payment status
+    order = request.GET.get('order')  # Order by name
+    search_query = request.GET.get('search')  # Search by name
+
+    # Start with all students
+    students = Student.objects.all()
+
+    # Apply filtering by allocated
+    if allocated == 'true':
+        students = students.filter(allocated=True)
+    elif allocated == 'false':
+        students = students.filter(allocated=False)
+
+    # Apply filtering by payment
+    if payment:
+        students = students.filter(payment=payment)
+
+    # Apply searching by name
+    if search_query:
+        students = students.filter(name__icontains=search_query)
+
+    # Apply sorting by name
+    if order == 'asc':  # A-Z
+        students = students.order_by('name')
+    elif order == 'desc':  # Z-A
+        students = students.order_by('-name')
+
+    context = {
+        'students': students,
+        'current_allocated': allocated,
+        'current_payment': payment,
+        'current_order': order,
+        'search_query': search_query,
+        'payment_choices': Student.PAYMENT_CHOICES,  # Pass payment choices to the template
+    }
+    return render(request, 'students.html', context)
 
 def show_student(request, student_id):
     """Display further info on a student"""
@@ -237,11 +274,64 @@ def delete_student(request,student_id):
         context = f'Are you sure you want to delete the following student: "{student.name}".'
         return render(request,'delete_student.html', {'context': context,'student':student})
     
-#@login_required
+@login_required
+
 def bookings_list(request):
-    """Display a list of all bookings (Page 1)."""
-    bookings = Booking.objects.all()
-    return render(request, 'bookings/booking_list.html', {'bookings': bookings})
+    """Display a list of all bookings with filtering, ordering, and searching options."""
+    term_filter = request.GET.get('term')  # Filter by term
+    order_by = request.GET.get('order')  # Order by student or tutor name
+    student_search = request.GET.get('student_search')  # Search for student name
+    tutor_search = request.GET.get('tutor_search')  # Search for tutor name
+
+    # Annotate full_name for students and tutors
+    bookings = Booking.objects.annotate(
+        student_full_name=Func(
+            F('student__first_name'),
+            Value(' '),
+            F('student__last_name'),
+            function='CONCAT',
+            output_field=CharField()
+        ),
+        tutor_full_name=Func(
+            F('tutor__first_name'),
+            Value(' '),
+            F('tutor__last_name'),
+            function='CONCAT',
+            output_field=CharField()
+        )
+    )
+
+    # Filter by term
+    if term_filter:
+        bookings = bookings.filter(term=term_filter)
+
+    # Search for student name
+    if student_search:
+        bookings = bookings.filter(student_full_name__icontains=student_search)
+
+    # Search for tutor name
+    if tutor_search:
+        bookings = bookings.filter(tutor_full_name__icontains=tutor_search)
+
+    # Order by student or tutor name
+    if order_by == 'student_asc':
+        bookings = bookings.order_by('student_full_name')
+    elif order_by == 'student_desc':
+        bookings = bookings.order_by('-student_full_name')
+    elif order_by == 'tutor_asc':
+        bookings = bookings.order_by('tutor_full_name')
+    elif order_by == 'tutor_desc':
+        bookings = bookings.order_by('-tutor_full_name')
+
+    return render(request, 'bookings/booking_list.html', {
+        'bookings': bookings,
+        'term_choices': Booking.TERM_CHOICES,
+        'term_filter': term_filter,
+        'order_by': order_by,
+        'student_search': student_search,
+        'tutor_search': tutor_search,
+    })
+
 
 # Create Booking
 def booking_create(request):
@@ -255,7 +345,7 @@ def booking_create(request):
         form = BookingForm()
     return render(request, 'bookings/booking_create.html', {'form': form})
 
-#@login_required
+@login_required
 def booking_update(request, pk):
     """Update a specific booking (Page 3)."""
     booking = get_object_or_404(Booking, pk=pk)
@@ -268,7 +358,7 @@ def booking_update(request, pk):
         form = BookingForm(instance=booking)
     return render(request, 'bookings/booking_update.html', {'form': form})
 
-#@login_required
+@login_required
 def booking_delete(request, pk):
     """Display confirmation page and delete a booking (Page 4)."""
     booking = get_object_or_404(Booking, pk=pk)
@@ -286,24 +376,60 @@ def booking_detail(request, pk):
     booking = get_object_or_404(Booking, pk=pk)
     return render(request, 'bookings/booking_show.html', {'booking': booking})
 
+from django.db.models import Q
+
 def booking_show(request, booking_id):
-    """List all sessions for a specific booking."""
+    """List all sessions for a specific booking with filtering and ordering."""
     booking = get_object_or_404(Booking, id=booking_id)
     sessions = booking.sessions.all()
-    return render(request, 'bookings/booking_show.html', {'booking': booking, 'sessions': sessions})
+
+    # Get filter values from request
+    lesson_type = request.GET.get('type', None)
+    venue = request.GET.get('venue', None)
+    payment_status = request.GET.get('payment', None)
+    order = request.GET.get('order', None)
+
+    # Apply filters
+    if lesson_type:
+        sessions = sessions.filter(lesson_type=lesson_type)
+    if venue:
+        sessions = sessions.filter(venue=venue)
+    if payment_status:
+        sessions = sessions.filter(payment_status=payment_status)
+
+    # Apply ordering
+    if order == 'closest':
+        sessions = sessions.order_by('session_date')
+    elif order == 'furthest':
+        sessions = sessions.order_by('-session_date')
+
+    return render(
+        request,
+        'bookings/booking_show.html',
+        {
+            'booking': booking,
+            'sessions': sessions,
+            'lesson_type_choices': Session.LESSON_TYPE_CHOICES,
+            'venue_choices': Session.VENUE_CHOICES,
+            'payment_status_choices': Session.PAYMENT_STATUS_CHOICES,
+        },
+    )
+
 
 def session_create(request, booking_id):
     """Create a new session for a specific booking."""
-    booking = get_object_or_404(Booking, id=booking_id)
+    booking = get_object_or_404(Booking, id=booking_id)  # Get the booking instance
     if request.method == 'POST':
         form = SessionForm(request.POST)
         if form.is_valid():
             new_session = form.save(commit=False)
-            new_session.booking = booking
+            new_session.booking = booking  # Ensure booking is set
             new_session.save()
             return redirect('session_list', booking_id=booking.id)
     else:
-        form = SessionForm()
+        # Prepopulate the booking field
+        form = SessionForm(initial={'booking': booking})
+
     return render(request, 'bookings/sessions/session_create.html', {'form': form, 'booking': booking})
 
 def session_show(request, pk):
@@ -334,10 +460,39 @@ class SessionDeleteView(DeleteView):
 
 ########## my additions ##########
 
+from .models import Tutor
+
 def list_tutors(request):
     """Display a list of all tutors."""
-    tutors = Tutor.objects.all()
-    return render(request, 'list_tutors.html', {'tutors': tutors})
+    subject = request.GET.get('subject')  # Get the subject filter
+    order = request.GET.get('order')  # Get the order filter
+    search_query = request.GET.get('search')  # Get the search query
+
+    # Filter tutors by subject if provided
+    if subject:
+        tutors = Tutor.objects.filter(subject=subject)
+    else:
+        tutors = Tutor.objects.all()
+
+    # Filter tutors by name if search query is provided
+    if search_query:
+        tutors = tutors.filter(name__icontains=search_query)
+
+    # Order tutors by name if ordering is specified
+    if order == 'asc':  # A-Z
+        tutors = tutors.order_by('name')
+    elif order == 'desc':  # Z-A
+        tutors = tutors.order_by('-name')
+
+    # Pass SUBJECT_CHOICES and order to the template
+    subject_choices = Tutor.SUBJECT_CHOICES
+
+    return render(request, 'list_tutors.html', {
+        'tutors': tutors,
+        'subject_choices': subject_choices,
+        'current_order': order,  # Pass current order for UI feedback
+        'search_query': search_query,  # Pass search query for UI feedback
+    })
 
 
 def show_tutor(request, tutor_id):
