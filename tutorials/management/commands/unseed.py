@@ -10,3 +10,4 @@ class Command(BaseCommand):
         """Unseed the database."""
 
         User.objects.filter(is_staff=False).delete()
+##
