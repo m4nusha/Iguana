@@ -17,6 +17,7 @@ class UserFormTestCase(TestCase):
             'last_name': 'Doe',
             'username': '@janedoe',
             'email': 'janedoe@example.org',
+            'user_type': 'student',
         }
 
     def test_form_has_necessary_fields(self):
@@ -48,3 +49,11 @@ class UserFormTestCase(TestCase):
         self.assertEqual(user.first_name, 'Jane')
         self.assertEqual(user.last_name, 'Doe')
         self.assertEqual(user.email, 'janedoe@example.org')
+        
+    def test_user_type_field_exists(self):
+        form = UserForm()
+        self.assertIn('user_type', form.fields)
+        user_type_field = form.fields['user_type']
+        self.assertTrue(isinstance(user_type_field, forms.ChoiceField))
+
+    

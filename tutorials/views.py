@@ -73,7 +73,7 @@ class LogInView(LoginProhibitedMixin, View):
     """Display login screen and handle user login."""
 
     http_method_names = ['get', 'post']
-    redirect_when_logged_in_url = REDIRECT_URL_WHEN_LOGGED_IN = 'dashboard' #made changes here
+    redirect_when_logged_in_url = REDIRECT_URL_WHEN_LOGGED_IN = 'dashboard' 
 
 
     def get(self, request):
@@ -86,7 +86,7 @@ class LogInView(LoginProhibitedMixin, View):
         """Handle log in attempt."""
 
         form = LogInForm(request.POST)
-        self.next = request.POST.get('next') or 'booking_list' #Made changes in here!!!
+        self.next = request.POST.get('next') or 'dashboard' 
         user = form.get_user()
         if user is not None:
             login(request, user)

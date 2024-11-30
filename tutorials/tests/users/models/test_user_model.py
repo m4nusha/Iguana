@@ -157,3 +157,11 @@ class UserModelTestCase(TestCase):
     def _assert_user_is_invalid(self):
         with self.assertRaises(ValidationError):
             self.user.full_clean()
+    
+    def test_user_type_must_be_valid(self):
+        self.user.user_type = 'invalid_type'
+        self._assert_user_is_invalid()
+
+    def test_user_type_defaults_to_student(self):
+        user = User.objects.create_user(username='@newuser', email='newuser@example.com', password='password')
+        self.assertEqual(user.user_type, 'student')

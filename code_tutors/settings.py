@@ -138,6 +138,9 @@ LOGIN_URL = 'log_in'
 # URL where @login_prohibited redirects to
 REDIRECT_URL_WHEN_LOGGED_IN = 'dashboard'
 
+# Redirect URL after successful login
+LOGIN_REDIRECT_URL = '/dashboard/'
+
 # Convert Django ERROR messages to Bootstrap DANGER messages
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
