@@ -3,7 +3,6 @@ from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
 from .models import Tutor
-from .models import User
 from .models import User, Booking, Session
 from django.core.exceptions import ValidationError
 
@@ -115,7 +114,35 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
             password=self.cleaned_data.get('new_password'),
         )
         return user
+    
+class UserForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email', 'user_type']
 
+
+class CreateUserForm(forms.ModelForm):
+    user_type = forms.ChoiceField(
+        choices=[('student', 'Student'), ('tutor', 'Tutor')],
+        initial='student',  # Default to 'student'
+    )
+
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user_type = self.cleaned_data['user_type']
+        if commit:
+            user.save()
+            if user_type == 'student':
+                from .models import Student
+                Student.objects.create(username=user)
+            elif user_type == 'tutor':
+                from .models import Tutor
+                Tutor.objects.create(username=user)
+        return user
 
     
 ############ my additions ##############
@@ -252,11 +279,6 @@ class SessionForm(forms.ModelForm):
         unique_together = ('booking', 'session_date', 'session_time')
         fields = ['booking', 'session_date', 'session_time', 'duration', 'lesson_type', 'venue', 'amount', 'payment_status']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Hide the booking field
-        self.fields['booking'].widget = forms.HiddenInput()
-        
     def clean(self):
         cleaned_data = super().clean()
         booking = cleaned_data.get('booking')

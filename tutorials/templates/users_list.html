@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Users</title>
+</head>
+<body>
+    <h1>Users</h1>
+
+    <form method="get" action="{% url 'users_list' %}">
+        <!-- Filter by User Type -->
+        <label for="user_type">Filter by Type:</label>
+        <select name="user_type" id="user_type">
+            <option value="">All</option>
+            <option value="student" {% if user_type_filter == 'student' %}selected{% endif %}>Student</option>
+            <option value="tutor" {% if user_type_filter == 'tutor' %}selected{% endif %}>Tutor</option>
+        </select>
+
+        <!-- Order by Name -->
+        <label for="order_by">Order by:</label>
+        <select name="order_by" id="order_by">
+            <option value="">Default</option>
+            <option value="asc" {% if order_by == 'asc' %}selected{% endif %}>A-Z</option>
+            <option value="desc" {% if order_by == 'desc' %}selected{% endif %}>Z-A</option>
+        </select>
+
+        <!-- Search by Name -->
+        <label for="search">Search:</label>
+        <input type="text" name="search" id="search" value="{{ search_query }}">
+
+        <!-- Submit Button -->
+        <button type="submit">Apply</button>
+    </form>
+
+    <a href="{% url 'create_user' %}">Create User</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Type</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.first_name }}</td>
+                <td>{{ user.last_name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.get_user_type_display }}</td>
+                <td>
+                    <a href="{% url 'edit_users_type' user.id %}">Edit</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">No users found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

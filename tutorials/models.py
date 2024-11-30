@@ -19,10 +19,14 @@ class User(AbstractUser):
             message='Username must consist of @ followed by at least three alphanumericals'
         )]
     )
+    USER_TYPES = [
+        ('student', 'Student'),
+        ('tutor', 'Tutor'),
+    ]
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
     email = models.EmailField(unique=True, blank=False, null=False)
-
+    user_type = models.CharField(max_length=10, choices=USER_TYPES, default='student')
 
     class Meta:
         """Model options."""
@@ -33,6 +37,14 @@ class User(AbstractUser):
         """Return a string containing the user's full name."""
 
         return f'{self.first_name} {self.last_name}'
+    
+    @property
+    def is_student(self):
+        return hasattr(self, 'students')
+
+    @property
+    def is_tutor(self):
+        return hasattr(self, 'tutors')
 
     def gravatar(self, size=120):
         """Return a URL to the user's gravatar."""

@@ -10,10 +10,11 @@ from django.views.generic.edit import FormView, UpdateView, DeleteView
 from django.urls import reverse, reverse_lazy
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
-from .models import Booking, Session
-from .forms import BookingForm, SessionForm
+from .models import Booking, Session, User
+from .forms import BookingForm, SessionForm, CreateUserForm, UserForm
 from django.shortcuts import get_object_or_404
 from django.db.models import Value, F, Func, CharField, Q
+from django.db import IntegrityError
 
 
 from .models import Student
@@ -167,6 +168,62 @@ class SignUpView(LoginProhibitedMixin, FormView):
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
 
+@login_required
+def users_list(request):
+    user_type_filter = request.GET.get('user_type')  # Filter by user type
+    order_by = request.GET.get('order_by')  # Order by name
+    search_query = request.GET.get('search', '')  # Search by name, second attribute is to set the search to empty instead of None
+
+    users = User.objects.all()
+
+    # Apply filtering by user type
+    if user_type_filter:
+        users = users.filter(user_type=user_type_filter)
+
+    # Apply searching by name
+    if search_query:
+        users = users.filter(
+            Q(first_name__icontains=search_query) | Q(last_name__icontains=search_query)
+        )
+
+    # Apply ordering by name
+    if order_by == 'asc':  # A-Z
+        users = users.order_by('first_name', 'last_name')
+    elif order_by == 'desc':  # Z-A
+        users = users.order_by('-first_name', '-last_name')
+
+    return render(request, 'users_list.html', {
+        'users': users,
+        'user_type_filter': user_type_filter,
+        'order_by': order_by,
+        'search_query': search_query,
+    })
+
+
+@login_required
+def edit_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if request.method == 'POST':
+        form = UserForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('users_list')
+    else:
+        form = UserForm(instance=user)
+    return render(request, 'edit_users_type.html', {'form': form, 'user': user})
+
+
+
+@login_required
+def create_user(request):
+    if request.method == 'POST':
+        form = UserForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('users_list')
+    else:
+        form = UserForm()
+    return render(request, 'create_user.html', {'form': form})
 
 def students(request):
     """Display a list of all students with filtering, sorting, and searching options."""

@@ -25,7 +25,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     # Inside welcome page (root URL)
-    path('', views.welcome, name='welcome'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('log_in/', views.LogInView.as_view(), name='log_in'),
     path('log_out/', views.log_out, name='log_out'),
@@ -42,6 +41,11 @@ urlpatterns = [
     path('create_student/',views.create_student, name='create_student'),
     path('update_student/<int:student_id>', views.update_student, name='update_student'),
     path('delete_student/<int:student_id>', views.delete_student, name='delete_student'),
+    path('users/', views.users_list, name='users_list'),
+    path('users/create/', views.create_user, name='create_user'),
+    path('users/<int:user_id>/edit/', views.edit_user, name='edit_users_type'),
+    #path('users/delete/<int:user_id>/', views.delete_user, name='delete_user'),
+    
 
 
     #Booking add-ons
