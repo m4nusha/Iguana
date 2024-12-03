@@ -57,6 +57,27 @@ class User(AbstractUser):
         """Return a URL to a miniature version of the user's gravatar."""
         
         return self.gravatar(size=60)
+    
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None  # Check if the User is being created
+        super().save(*args, **kwargs)  # Call the parent save method
+        
+        # Ensure a Student instance is created if the user_type is 'student'
+        if self.user_type == 'student' and not Student.objects.filter(username=self).exists():
+            Student.objects.create(username=self, name=self.full_name, email=self.email)
+        
+        # Ensure a Tutor instance is created if the user_type is 'tutor'
+        if self.user_type == 'tutor' and not Tutor.objects.filter(username=self).exists():
+            Tutor.objects.create(username=self, name=self.full_name, email=self.email)
+
+        # If switching user_type from 'tutor' to 'student', delete related Tutor
+        if not is_new and self.user_type == 'student':
+            Tutor.objects.filter(username=self).delete()
+
+        # If switching user_type from 'student' to 'tutor', delete related Student
+        if not is_new and self.user_type == 'tutor':
+            Student.objects.filter(username=self).delete()
+
 
 class Student(models.Model):
     PENDING = 'Pending'

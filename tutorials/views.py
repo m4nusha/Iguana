@@ -168,6 +168,19 @@ class SignUpView(LoginProhibitedMixin, FormView):
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
 
+def populate():
+    users = User.objects.all()
+    # Ensure associated Student/Tutor records exist for all users
+    for user in users:
+        if user.user_type == 'student' and not Student.objects.filter(username=user).exists():
+            Student.objects.get_or_create(
+                username=user, defaults={'name': user.full_name, 'email': user.email.lower()}
+            )
+        elif user.user_type == 'tutor' and not Tutor.objects.filter(username=user).exists():
+            Tutor.objects.get_or_create(
+                username=user, defaults={'name': user.full_name, 'email': user.email.lower()}
+            )
+            
 @login_required
 def users_list(request):
     user_type_filter = request.GET.get('user_type')  # Filter by user type
@@ -175,7 +188,7 @@ def users_list(request):
     search_query = request.GET.get('search', '')  # Search by name, second attribute is to set the search to empty instead of None
 
     users = User.objects.all()
-
+    populate()
     # Apply filtering by user type
     if user_type_filter:
         users = users.filter(user_type=user_type_filter)
@@ -190,14 +203,18 @@ def users_list(request):
     if order_by == 'asc':  # A-Z
         users = users.order_by('first_name', 'last_name')
     elif order_by == 'desc':  # Z-A
-        users = users.order_by('-first_name', '-last_name')
-
+        users = users.order_by('-first_name', '-last_name') 
+        
+    
+            
     return render(request, 'users_list.html', {
         'users': users,
         'user_type_filter': user_type_filter,
         'order_by': order_by,
         'search_query': search_query,
     })
+    
+    
 
 
 @login_required
@@ -235,7 +252,7 @@ def students(request):
 
     # Start with all students
     students = Student.objects.all()
-
+    populate()
     # Apply filtering by allocated
     if allocated == 'true':
         students = students.filter(allocated=True)
@@ -524,7 +541,7 @@ def list_tutors(request):
     subject = request.GET.get('subject')  # Get the subject filter
     order = request.GET.get('order')  # Get the order filter
     search_query = request.GET.get('search')  # Get the search query
-
+    populate()
     # Filter tutors by subject if provided
     if subject:
         tutors = Tutor.objects.filter(subject=subject)
