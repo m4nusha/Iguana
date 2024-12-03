@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Request</title>
+</head>
+<body>
+    <h1>Delete Request</h1>
+    <p>{{ context }}</p>
+
+    <form action="{% url 'delete_request' student_request.id %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="Confirm">
+    </form>
+
+    <a href="{% url 'student_requests' %}">Cancel</a>
+</body>
+</html>

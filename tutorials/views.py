@@ -17,8 +17,8 @@ from django.db.models import Value, F, Func, CharField, Q
 from django.db import IntegrityError
 
 
-from .models import Student
-from .forms import StudentForm
+from .models import Student,StudentRequest
+from .forms import StudentForm,StudentRequestForm
 from django.http import HttpResponse, HttpResponseRedirect,Http404
 
 from .models import Tutor
@@ -275,25 +275,6 @@ def show_student(request, student_id):
     else:
         return render(request, 'show_student.html', context)
 
-def create_student(request):
-    """Create a new student to the database"""
-    #check first if it's a post request
-    if request.method == "POST":
-        form = StudentForm(request.POST)
-        #then check if the data entered is valid
-        if form.is_valid():
-            try:
-                form.save()
-            except:
-                form.add_error(None, "It was not possible to save this student to the database,")
-            else:
-                path = reverse('students')     #go to  list of students
-                return HttpResponseRedirect(path)
-    else:
-        form = StudentForm()
-    return render(request, 'create_student.html', {'form':form})
-
-
 def update_student(request,student_id):
     try:
         student = Student.objects.get(id=student_id)
@@ -330,7 +311,91 @@ def delete_student(request,student_id):
             # If request is GET, show confirmation page
         context = f'Are you sure you want to delete the following student: "{student.name}".'
         return render(request,'delete_student.html', {'context': context,'student':student})
-    
+
+def student_requests(request):
+    """
+    Display a list of all student requests.
+    """
+    # Fetch all student requests from the database
+    context = {'requests': StudentRequest.objects.all()}
+    return render(request, 'student_requests.html', context)
+
+def show_request(request, request_id):
+    """
+    Display further information on a student request.
+    """
+    try:
+        context = {'student_request': StudentRequest.objects.get(id=request_id)}
+    except StudentRequest.DoesNotExist:
+        raise Http404(f"Could not find a request with primary key {request_id}")
+    else:
+        return render(request, 'show_request.html', context)
+
+
+def create_request(request):
+    """
+    Create a new student request and save it to the database.
+    """
+    if request.method == "POST":
+        form = StudentRequestForm(request.POST)
+        if form.is_valid():
+            try:
+                form.save()
+            except Exception as e:
+                form.add_error(None, "It was not possible to save this request to the database.")
+            else:
+                path = reverse('student_requests')
+                return HttpResponseRedirect(path)
+    else:
+        form = StudentRequestForm()
+
+    return render(request, 'create_request.html', {'form': form})
+
+
+def update_request(request, request_id):
+    """
+    Update an existing student request in the database.
+    """
+    try:
+        student_request = StudentRequest.objects.get(id=request_id)
+    except StudentRequest.DoesNotExist:
+        raise Http404(f"Could not find a request with primary key {request_id}")
+    else:
+        if request.method == "POST":
+            form = StudentRequestForm(request.POST, instance=student_request)
+            if form.is_valid():
+                try:
+                    form.save()  # Save the updated data to the database
+                except Exception as e:
+                    form.add_error(None, "It was not possible to save this request to the database.")
+                else:
+                    path = reverse('student_requests')  # Redirect to the list of requests
+                    return HttpResponseRedirect(path)
+        else:
+            form = StudentRequestForm(instance=student_request)
+
+        return render(request, 'update_request.html', {'form': form, 'student_request': student_request})
+
+
+def delete_request(request, request_id):
+    """
+    Delete a student request from the database.
+    """
+    try:
+        student_request = StudentRequest.objects.get(id=request_id)
+    except StudentRequest.DoesNotExist:
+        raise Http404(f"Could not find a request with primary key {request_id}")
+
+    if request.method == "POST":
+        # If the user confirmed deletion, delete the request and redirect
+        student_request.delete()
+        path = reverse('student_requests')  # Redirect to the list of requests
+        return HttpResponseRedirect(path)
+    else:
+        # If request is GET, show confirmation page
+        context = f'Are you sure you want to delete the following request: "{student_request}"?'
+        return render(request, 'delete_request.html', {'context': context, 'student_request': student_request})
+
 @login_required
 
 def bookings_list(request):

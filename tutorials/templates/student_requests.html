@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Requests</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+    <h1>Student Requests</h1>
+    <a href="{% url 'create_request' %}">Create Request</a>
+
+    {% if requests %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Request Type</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for request in requests %}
+            <tr>
+                <td>{{ request.id }}</td>
+                <td>{{ request.name }}</td>
+                <td>{{ request.get_request_type_display }}</td>
+                <td>{{ request.get_status_display }}</td>
+                <td>{{ request.get_priority_display }}</td>
+                <td>{{ request.created_at }}</td>
+                <td>
+                    <a href="{% url 'show_request' request.id %}">Show</a>
+                    <a href="{% url 'update_request' request.id %}">Edit</a>
+                    <a href="{% url 'delete_request' request.id %}">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No requests available.</p>
+    {% endif %}
+</body>
+</html>

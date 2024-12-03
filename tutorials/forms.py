@@ -2,11 +2,12 @@ from datetime import date, datetime
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
+from .models import Student, StudentRequest
 from .models import Tutor
 from .models import User, Booking, Session
 from django.core.exceptions import ValidationError
 
-from .models import Student
+
 
 
 class LogInForm(forms.Form):
@@ -216,6 +217,37 @@ class StudentForm(forms.ModelForm):
                 self.add_error('allocated', "Allocated must be a boolean value.")
 
         return cleaned_data
+
+
+class StudentRequestForm(forms.ModelForm):
+    class Meta:
+        model = StudentRequest
+        fields = ['username', 'request_type', 'description', 'status', 'priority']
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)  # Get the instance without saving to the database yet
+        instance.name = instance.username.get_full_name()  # Populate the name based on the username
+        if commit:
+            instance.save()  # Save to the database
+        return instance
+
+    def clean(self):
+        cleaned_data = super().clean()
+        username = cleaned_data.get('username')
+        request_type = cleaned_data.get('request_type')
+
+        # Get the current instance ID if updating, otherwise None
+        instance_id = self.instance.id if self.instance else None
+
+        # Ensure uniqueness of request_type for the same username, excluding the current instance
+        if StudentRequest.objects.exclude(id=instance_id).filter(username=username, request_type=request_type).exists():
+            self.add_error(
+                'request_type',
+                f"A request of this type already exists for user @{username}."
+            )
+
+        return cleaned_data
+
 
 class BookingForm(forms.ModelForm):
     """Form to create or update a booking."""
