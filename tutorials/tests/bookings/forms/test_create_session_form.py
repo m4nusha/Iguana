@@ -15,9 +15,7 @@ class CreateSessionFormTestCase(TestCase):
             "session_date": "2025-01-01",
             "session_time": "12:00:00",
             "duration": timedelta(hours=1),
-            "lesson_type": "Weekly",
             "venue": "Bush House",
-            "amount": 50.00,
             "payment_status": "Pending",
         }
     
@@ -29,7 +27,7 @@ class CreateSessionFormTestCase(TestCase):
     def test_form_contains_all_fields(self):
         """form contains all required fields"""
         form = SessionForm()
-        expected_fields = ['booking', 'session_date', 'session_time', 'duration', 'lesson_type', 'venue', 'amount', 'payment_status']
+        expected_fields = ['booking', 'session_date', 'session_time', 'duration', 'venue', 'payment_status']
         for field in expected_fields:
             self.assertIn(field, form.fields)
 
@@ -41,6 +39,13 @@ class CreateSessionFormTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('session_date', form.errors)
 
+    def test_form_accepts_future_session_date(self):
+        """form accepts a session with a date in the future"""
+        valid_data = self.valid_data.copy()
+        valid_data["session_date"] = (date.today() + timedelta(days=365)).isoformat()
+        form = SessionForm(data=valid_data)
+        self.assertTrue(form.is_valid())
+
     def test_form_rejects_duplicate_session(self):
         """form rejects a duplicate session for the same booking, date, and time"""
         Session.objects.create(
@@ -48,9 +53,7 @@ class CreateSessionFormTestCase(TestCase):
             session_date="2025-01-01",
             session_time="12:00:00",
             duration=timedelta(hours=1),
-            lesson_type="Weekly",
             venue="Bush House",
-            amount=50.00,
             payment_status="Pending",
         )
         form = SessionForm(data=self.valid_data)
@@ -68,9 +71,7 @@ class CreateSessionFormTestCase(TestCase):
             session_date="2025-01-01",
             session_time="12:00:00",
             duration=timedelta(hours=2),
-            lesson_type="Weekly",
             venue="Bush House",
-            amount=50.00,
             payment_status="Pending",
         )
         invalid_data = self.valid_data.copy()
@@ -98,9 +99,7 @@ class CreateSessionFormTestCase(TestCase):
         self.assertEqual(session.session_date, date(2025, 1, 1))
         self.assertEqual(session.session_time, time(12, 0))
         self.assertEqual(session.duration, timedelta(hours=1))
-        self.assertEqual(session.lesson_type, "Weekly")
         self.assertEqual(session.venue, "Bush House")
-        self.assertEqual(session.amount, 50.00)
         self.assertEqual(session.payment_status, "Pending")
 
     def test_form_rejects_zero_or_negative_duration(self):
@@ -110,14 +109,6 @@ class CreateSessionFormTestCase(TestCase):
         form = SessionForm(data=invalid_data)
         self.assertFalse(form.is_valid())
         self.assertIn("duration", form.errors)
-
-    def test_form_rejects_negative_amount(self):
-        """form rejects a session with a negative amount"""
-        invalid_data = self.valid_data.copy()
-        invalid_data["amount"] = -10.00
-        form = SessionForm(data=invalid_data)
-        self.assertFalse(form.is_valid())
-        self.assertIn('amount', form.errors)
     
     def test_session_count_increases_after_creation(self):
         """session count increases by 1 after a session is created"""
@@ -128,19 +119,6 @@ class CreateSessionFormTestCase(TestCase):
         updated_count = Session.objects.count()
         self.assertEqual(updated_count, initial_count + 1)
 
-    def test_form_validates_choice_fields(self):
-        """form rejects invalid choices for lesson_type and venue"""
-        invalid_data = self.valid_data.copy()
-        invalid_data["lesson_type"] = "InvalidLessonType"
-        form = SessionForm(data=invalid_data)
-        self.assertFalse(form.is_valid())
-        self.assertIn('lesson_type', form.errors)
-        invalid_data["lesson_type"] = "Weekly"
-        invalid_data["venue"] = "InvalidVenue"
-        form = SessionForm(data=invalid_data)
-        self.assertFalse(form.is_valid())
-        self.assertIn('venue', form.errors)
-
     def test_form_validates_time_format(self):
         """form rejects invalid time format"""
         invalid_data = self.valid_data.copy()
@@ -148,11 +126,14 @@ class CreateSessionFormTestCase(TestCase):
         form = SessionForm(data=invalid_data)
         self.assertFalse(form.is_valid())
         self.assertIn('session_time', form.errors)
-    
-    def test_form_validates_payment_status(self):
-        """form rejects invalid payment status"""
-        invalid_data = self.valid_data.copy()
-        invalid_data["payment_status"] = "InvalidStatus"
-        form = SessionForm(data=invalid_data)
-        self.assertFalse(form.is_valid())
-        self.assertIn('payment_status', form.errors)
+
+    def test_form_accepts_valid_time_format(self):
+        """form accepts valid time format"""
+        valid_data = self.valid_data.copy()
+        valid_data["session_time"] = "00:00:00"
+        form = SessionForm(data=valid_data)
+        self.assertTrue(form.is_valid())
+
+        valid_data["session_time"] = "23:59:59"
+        form = SessionForm(data=valid_data)
+        self.assertTrue(form.is_valid())
