@@ -1,15 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Update Session</title>
-</head>
-<body>
-    <h1>Update Session</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Update</button>
-    </form>
-    <button onclick="history.back()">Cancel</button>
-</body>
-</html>
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1 class="text-primary mb-4">Update Session</h1>
+
+  <form method="post" class="card p-4 shadow-sm">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="d-flex justify-content-between mt-4">
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-check-circle"></i> Update
+      </button>
+      <button type="button" class="btn btn-secondary" onclick="history.back()">
+        <i class="bi bi-arrow-left"></i> Cancel
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

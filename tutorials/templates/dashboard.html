@@ -1,24 +1,52 @@
 {% extends 'base_content.html' %}
 {% block content %}
-<div class="container">
-  <div class="row">
-    <div class="col-12">
-      <h1>Welcome to your dashboard {{ user.username }}</h1>
-      <a href="{% url 'booking_list' %}">
-        <button>Bookings</button>
-    </a>
-    <a href="{% url 'students' %}">
-        <button>Students</button>
-    </a>
-    <a href="{% url 'tutors' %}">
-        <button>Tutors</button>
-    </a>
-    <a href="{% url 'users_list' %}">
-      <button>Users</button>
-    </a>
-    <a href="{% url 'users_list' %}">
-      <button>Students Requests</button>
-    </a>
+<div class="container mt-5">
+  <h1 class="text-center mb-4">Welcome to your Dashboard, {{ user.username }}</h1>
+  <div class="row row-cols-1 row-cols-md-2 g-4">
+    <div class="col">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Bookings</h5>
+          <p class="card-text">Manage all your bookings in one place.</p>
+          <a href="{% url 'booking_list' %}" class="btn btn-primary">View Bookings</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Students</h5>
+          <p class="card-text">Access and update student profiles.</p>
+          <a href="{% url 'students' %}" class="btn btn-primary">Manage Students</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Tutors</h5>
+          <p class="card-text">View and manage details of all tutors.</p>
+          <a href="{% url 'tutors' %}" class="btn btn-primary">Manage Tutors</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Users</h5>
+          <p class="card-text">Control and configure user accounts.</p>
+          <a href="{% url 'users_list' %}" class="btn btn-primary">Manage Users</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Student Requests</h5>
+          <p class="card-text">Review and handle pending student requests.</p>
+          <a href="{% url 'users_list' %}" class="btn btn-primary">View Requests</a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
