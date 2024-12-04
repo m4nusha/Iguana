@@ -1,16 +1,7 @@
-<h1>Sessions for {{ booking.student.full_name }} with {{ booking.tutor.full_name }} ({{ booking.term }})</h1>
+<h1> {{ booking.lesson_type }} Sessions for {{ booking.student.full_name }} with {{ booking.tutor.full_name }} ({{ booking.term }})</h1>
 
 <!-- Filter and Order Form -->
 <form method="get">
-    <label for="type">Filter by Type:</label>
-    <select name="type" id="type">
-        <option value="">All</option>
-        {% for value, label in lesson_type_choices %}
-        <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>
-            {{ label }}
-        </option>
-        {% endfor %}
-    </select>
 
     <label for="venue">Filter by Venue:</label>
     <select name="venue" id="venue">
@@ -54,9 +45,8 @@
             <th>Date</th>
             <th>Time</th>
             <th>Duration</th>
-            <th>Type</th>
             <th>Venue</th>
-            <th>Amount</th>
+            <th>Total amount (£)</th>
             <th>Payment</th>
             <th>Actions</th>
         </tr>
@@ -65,9 +55,8 @@
             <td>{{ session.session_date|date:"d/m/Y" }}</td>
             <td>{{ session.session_time|time:"H:i" }}</td>
             <td>{{ session.duration }}</td>
-            <td>{{ session.lesson_type }}</td>
             <td>{{ session.venue }}</td>
-            <td>${{ session.amount }}</td>
+            <td>{{ session.calculated_total_amount }}</td>
             <td>{{ session.payment_status }}</td>
             <td>
                 <a href="{% url 'session_update' session.id %}"><button>Update</button></a>

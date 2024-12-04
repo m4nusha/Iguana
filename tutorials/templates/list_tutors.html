@@ -68,6 +68,7 @@
                     <th>Username</th>
                     <th>Email</th>
                     <th>Subject</th>
+                    <th>Rate (£)</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -78,6 +79,7 @@
                         <td>{{ tutor.username }}</td>
                         <td>{{ tutor.email }}</td>
                         <td>{{ tutor.subject }}</td>
+                        <td>{{ tutor.rate }}</td>
                         <td>
                             <a href="{% url 'show_tutor' tutor.id %}">View</a>
                             <a href="{% url 'update_tutor' tutor.id %}">Edit</a>
@@ -92,3 +94,4 @@
     {% endif %}
 </body>
 </html>
+<a href="{% url 'dashboard' %}"><button>Back to Dashboard</button></a>
