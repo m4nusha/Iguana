@@ -1,6 +1,3 @@
-
-# additional tests to add: duplicate session with same booking, time, date
-
 from django.test import TestCase
 from tutorials.forms import UpdateSessionForm
 from tutorials.models import Session, Booking, User

@@ -1,3 +1,5 @@
+# add tests + implementation for if user is not logged in, it redirects them to login page
+
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -10,7 +12,7 @@ class CreateBookingViewTest(TestCase):
         self.student = User.objects.create_user(username="student", email="student@example.com", password="password")
         self.tutor = User.objects.create_user(username="tutor", email="tutor@example.com", password="password")
         self.url = reverse('booking_create')
-        self.form_data = {'student': self.student.id,'tutor': self.tutor.id,'term': Booking.TERM1}
+        self.form_data = {'student': self.student.id,'tutor': self.tutor.id,'term': Booking.TERM1, 'lesson_type': Booking.TYPE_WEEKLY}
 
     def test_create_booking_url(self):
         """test the correct URL mapping for the create booking view"""
@@ -26,6 +28,7 @@ class CreateBookingViewTest(TestCase):
 
     def test_valid_post_creates_booking(self):
         """test a valid POST request successfully creates a booking"""
+        self.client.login(username='student', password='password')
         before_count = Booking.objects.count()
         response = self.client.post(self.url, data=self.form_data, follow=True)
         after_count = Booking.objects.count()
@@ -45,7 +48,7 @@ class CreateBookingViewTest(TestCase):
 
     def test_duplicate_booking_is_not_created(self):
         """test that attempting to create a duplicate booking is prevented"""
-        Booking.objects.create(student=self.student, tutor=self.tutor, term=Booking.TERM1)
+        Booking.objects.create(student=self.student, tutor=self.tutor, term=Booking.TERM1, lesson_type=Booking.TYPE_WEEKLY)
         before_count = Booking.objects.count()
         response = self.client.post(self.url, data=self.form_data)
         after_count = Booking.objects.count()
@@ -56,7 +59,7 @@ class CreateBookingViewTest(TestCase):
 
     def test_create_booking_for_existing_booking_scenario(self):
         """test creating a booking where the student and tutor already have a similar booking"""
-        Booking.objects.create(student=self.student, tutor=self.tutor, term=Booking.TERM1)
+        Booking.objects.create(student=self.student, tutor=self.tutor, term=Booking.TERM1, lesson_type=Booking.TYPE_WEEKLY)
         before_count = Booking.objects.count()
         response = self.client.post(self.url, data=self.form_data)
         after_count = Booking.objects.count()
@@ -67,6 +70,7 @@ class CreateBookingViewTest(TestCase):
 
     def test_create_booking_redirects_on_success(self):
         """test that a successful booking creation redirects to the correct page"""
+        self.client.login(username='student', password='password')
         response = self.client.post(self.url, data=self.form_data)
         self.assertRedirects(response, reverse('booking_list'))
 
@@ -107,6 +111,7 @@ class CreateBookingViewTest(TestCase):
 
     def test_create_booking_with_valid_student_and_tutor(self):
         """test that the booking is created successfully when student and tutor are valid and different"""
+        self.client.login(username='student', password='password')
         self.form_data['student'] = self.student.id
         self.form_data['tutor'] = self.tutor.id
         before_count = Booking.objects.count()
