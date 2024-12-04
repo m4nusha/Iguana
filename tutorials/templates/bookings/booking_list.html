@@ -3,6 +3,7 @@
 
 <!-- Filter, Search, and Order Section -->
 <form method="get" action="">
+
     <!-- Filter by Term -->
     <label for="term">Filter by Term:</label>
     <select name="term" id="term">
@@ -13,6 +14,19 @@
             </option>
         {% endfor %}
     </select>
+
+    <!-- Filter by Lesson Type -->
+    <label for="lesson_type">Filter by Type:</label>
+    <select name="lesson_type" id="lesson_type">
+        <option value="">All</option>
+        {% for value, lesson_type_label in lesson_type_choices %}
+        <option value="{{ value }}" {% if lesson_type_filter == value %}selected{% endif %}>
+            {{ lesson_type_label }}
+        </option>
+        {% endfor %}
+    </select>
+    
+
     <!-- Apply Filters -->
     <button type="submit">Apply</button>
 
@@ -59,6 +73,7 @@
 <table>
     <tr>
         <th>Term</th>
+        <th>Type</th>
         <th>Student</th>
         <th>Tutor</th>
         <th>Actions</th>
@@ -66,6 +81,7 @@
     {% for booking in bookings %}
     <tr>
         <td>{{ booking.term }}</td>
+        <td>{{ booking.lesson_type }}</td>
         <td>{{ booking.student.full_name }}</td>
         <td>{{ booking.tutor.full_name }}</td>
         <td>
@@ -76,3 +92,5 @@
     </tr>
     {% endfor %}
 </table>
+<a href="{% url 'dashboard' %}"><button>Back to Dashboard</button></a>
+
