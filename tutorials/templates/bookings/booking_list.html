@@ -100,9 +100,11 @@
       </tr>
     </thead>
     <tbody>
+      {% if bookings %}
       {% for booking in bookings %}
       <tr>
         <td>{{ booking.term }}</td>
+        <td>{{ booking.lesson_type }}</td>
         <td>{{ booking.student.full_name }}</td>
         <td>{{ booking.tutor.full_name }}</td>
         <td>
@@ -120,6 +122,11 @@
         </td>
       </tr>
       {% endfor %}
+      {% else %}
+      <tr>
+        <td colspan="5" class="text-center">No bookings available.</td>
+      </tr>
+      {% endif %}
     </tbody>
   </table>
 </div>
