@@ -68,7 +68,7 @@
           <th scope="col">Time</th>
           <th scope="col">Duration</th>
           <th scope="col">Venue</th>
-          <th scope="col">Amount</th>
+          <th scope="col">Total Amount</th>
           <th scope="col">Payment</th>
           <th scope="col">Actions</th>
         </tr>
@@ -80,7 +80,7 @@
           <td>{{ session.session_time|time:"H:i" }}</td>
           <td>{{ session.duration }}</td>
           <td>{{ session.venue }}</td>
-          <td>${{ session.amount }}</td>
+          <td>${{ session.total_amount }}</td>
           <td>{{ session.payment_status }}</td>
           <td>
             <div class="btn-group" role="group" aria-label="Actions">
