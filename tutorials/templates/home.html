@@ -3,19 +3,22 @@
   <div class="container vh-100">
     <div class="row h-100">
       <div class="col-12 my-auto">
-        <div class="card cover-card offset-sm-2 offset-md-4 offset-lg-7">
+        <div class="card cover-card offset-sm-2 offset-md-4 offset-lg-7 text-center py-4">
           <h1 class="cover-heading">Task Manager</h1>
           <p class="cover-text">A task manager application by Team <i>Iguana</i></p>
-          <p>
-            <a href='{% url 'sign_up' %}' class="btn btn-lg btn-secondary">
-              Sign up
-            </a>
-          </p>
-          <p>
-            <a href='{% url 'log_in' %}' class="btn btn-lg btn-secondary">
-              Log in
-            </a>
-          </p>
+          <p class="tagline text-muted">"Organize. Prioritize. Achieve."</p>
+          <div class="mt-4">
+            <p>
+              <a href='{% url 'sign_up' %}' class="btn btn-lg btn-primary mx-2">
+                Sign Up
+              </a>
+              <a href='{% url 'log_in' %}' class="btn btn-lg btn-secondary mx-2">
+                Log In
+              </a>
+            </p>
+          </div>
+          <hr>
+          <p class="small text-muted">Empowering you to take control of your tasks, one step at a time.</p>
         </div>
       </div>
     </div>

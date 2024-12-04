@@ -1,15 +1,27 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Delete Booking</title>
-</head>
-<body>
-    <h1>Delete Booking</h1>
-    <p>Are you sure you want to delete the booking for <strong>{{ booking.student.full_name }}</strong>?</p>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">Yes, Delete</button>
-    </form>
-    <a href="{% url 'booking_list' %}"><button>No, Cancel</button></a>
-</body>
-</html>
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-body">
+            <h1 class="card-title text-danger">Confirm Delete</h1>
+            <p class="card-text">
+                Are you sure you want to delete the booking for 
+                <strong>{{ booking.student.full_name }}</strong> with 
+                <strong>{{ booking.tutor.full_name }}</strong> in 
+                <strong>{{ booking.term }}</strong>?
+            </p>
+            
+            <form method="post" class="mb-3">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Yes, Delete
+                </button>
+                <a href="{% url 'booking_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> No, Cancel
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

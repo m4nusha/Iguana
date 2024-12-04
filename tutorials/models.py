@@ -134,6 +134,7 @@ class Booking(models.Model):
     class Meta:
         ordering = ['term', 'student', 'tutor']
         unique_together = ['term', 'student', 'tutor']
+        
 
     def clean(self):
         if not self.student_id or not self.tutor_id:

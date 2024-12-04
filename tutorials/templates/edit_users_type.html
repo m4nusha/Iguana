@@ -1,14 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Edit User</title>
-</head>
-<body>
-    <h1>Edit User</h1>
-    <form method="post">
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-primary mb-4">Edit User</h1>
+
+    <form method="post" class="card p-4 shadow-sm">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Save</button>
+        <div class="d-flex justify-content-between mt-4">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle"></i> Save
+            </button>
+            <a href="{% url 'users_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Users
+            </a>
+        </div>
     </form>
-</body>
-</html>
+</div>
+{% endblock %}

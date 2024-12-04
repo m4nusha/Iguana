@@ -1,78 +1,113 @@
-<h1>Bookings</h1>
-<a href="{% url 'booking_create' %}"><button>Create Booking</button></a>
+{% extends 'base_content.html' %}
 
-<!-- Filter, Search, and Order Section -->
-<form method="get" action="">
-    <!-- Filter by Term -->
-    <label for="term">Filter by Term:</label>
-    <select name="term" id="term">
-        <option value="">All Terms</option>
-        {% for term, term_label in term_choices %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="text-primary">Bookings</h1>
+    <a href="{% url 'booking_create' %}" class="btn btn-success">
+      <i class="bi bi-plus-circle"></i> Create Booking
+    </a>
+  </div>
+
+  <!-- Filter, Search, and Order Section -->
+  <form method="get" action="" class="mb-4">
+    <div class="row">
+      <!-- Filter by Term -->
+      <div class="col-md-3 mb-3">
+        <label for="term" class="form-label">Filter by Term:</label>
+        <select name="term" id="term" class="form-select">
+          <option value="">All Terms</option>
+          {% for term, term_label in term_choices %}
             <option value="{{ term }}" {% if term_filter == term %}selected{% endif %}>
-                {{ term_label }}
+              {{ term_label }}
             </option>
-        {% endfor %}
-    </select>
-    <!-- Apply Filters -->
-    <button type="submit">Apply</button>
+          {% endfor %}
+        </select>
+      </div>
 
-    <!-- Search for Student Name -->
-    <label for="student_search">Search by Student:</label>
-    <input
-        type="text"
-        id="student_search"
-        name="student_search"
-        placeholder="Enter student name"
-        value="{{ student_search|default:'' }}"
-    />
+      <!-- Search for Student Name -->
+      <div class="col-md-3 mb-3">
+        <label for="student_search" class="form-label">Search by Student:</label>
+        <input
+          type="text"
+          id="student_search"
+          name="student_search"
+          placeholder="Enter student name"
+          value="{{ student_search|default:'' }}"
+          class="form-control"
+        />
+      </div>
 
-    <!-- Search for Tutor Name -->
-    <label for="tutor_search">Search by Tutor:</label>
-    <input
-        type="text"
-        id="tutor_search"
-        name="tutor_search"
-        placeholder="Enter tutor name"
-        value="{{ tutor_search|default:'' }}"
-    />
+      <!-- Search for Tutor Name -->
+      <div class="col-md-3 mb-3">
+        <label for="tutor_search" class="form-label">Search by Tutor:</label>
+        <input
+          type="text"
+          id="tutor_search"
+          name="tutor_search"
+          placeholder="Enter tutor name"
+          value="{{ tutor_search|default:'' }}"
+          class="form-control"
+        />
+      </div>
 
-    <!-- Order by Name -->
-    <label for="order">Order by:</label>
-    <button type="submit" name="order" value="student_asc" {% if order_by == 'student_asc' %}style="font-weight: bold;"{% endif %}>
-        Student A-Z
-    </button>
-    <button type="submit" name="order" value="student_desc" {% if order_by == 'student_desc' %}style="font-weight: bold;"{% endif %}>
-        Student Z-A
-    </button>
-    <button type="submit" name="order" value="tutor_asc" {% if order_by == 'tutor_asc' %}style="font-weight: bold;"{% endif %}>
-        Tutor A-Z
-    </button>
-    <button type="submit" name="order" value="tutor_desc" {% if order_by == 'tutor_desc' %}style="font-weight: bold;"{% endif %}>
-        Tutor Z-A
-    </button>
+      <!-- Order by Name -->
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Order by:</label>
+        <div class="d-flex">
+          <button type="submit" name="order" value="student_asc" class="btn btn-outline-primary me-1 {% if order_by == 'student_asc' %}active{% endif %}">
+            Student A-Z
+          </button>
+          <button type="submit" name="order" value="student_desc" class="btn btn-outline-primary me-1 {% if order_by == 'student_desc' %}active{% endif %}">
+            Student Z-A
+          </button>
+          <button type="submit" name="order" value="tutor_asc" class="btn btn-outline-primary me-1 {% if order_by == 'tutor_asc' %}active{% endif %}">
+            Tutor A-Z
+          </button>
+          <button type="submit" name="order" value="tutor_desc" class="btn btn-outline-primary {% if order_by == 'tutor_desc' %}active{% endif %}">
+            Tutor Z-A
+          </button>
+        </div>
+      </div>
+    </div>
 
-    
-</form>
-<br>
+    <div class="text-end">
+      <button type="submit" class="btn btn-primary">Apply Filters</button>
+    </div>
+  </form>
 
-<!-- Booking Table -->
-<table>
-    <tr>
-        <th>Term</th>
-        <th>Student</th>
-        <th>Tutor</th>
-        <th>Actions</th>
-    </tr>
-    {% for booking in bookings %}
-    <tr>
+  <!-- Booking Table -->
+  <table class="table table-striped table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th scope="col">Term</th>
+        <th scope="col">Student</th>
+        <th scope="col">Tutor</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for booking in bookings %}
+      <tr>
         <td>{{ booking.term }}</td>
         <td>{{ booking.student.full_name }}</td>
         <td>{{ booking.tutor.full_name }}</td>
         <td>
-            <a href="{% url 'session_list' booking.pk %}"><button>Show</button></a>
-            <a href="{% url 'booking_update' booking.pk %}"><button>Update</button></a>
-            <a href="{% url 'booking_delete' booking.pk %}"><button>Delete</button></a>
+          <div class="btn-group" role="group" aria-label="Actions">
+            <a href="{% url 'session_list' booking.pk %}" class="btn btn-info btn-sm" title="Show">
+              <i class="bi bi-eye"></i>
+            </a>
+            <a href="{% url 'booking_update' booking.pk %}" class="btn btn-warning btn-sm" title="Update">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{% url 'booking_delete' booking.pk %}" class="btn btn-danger btn-sm" title="Delete">
+              <i class="bi bi-trash"></i>
+            </a>
+          </div>
         </td>
-    </tr>
-    {% endfor %}
-</table>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
