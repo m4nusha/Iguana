@@ -16,7 +16,7 @@ class ShowBookingViewTest(TestCase):
         self.client.login(username='testuser', password='12345')
         response = self.client.get(reverse('session_list', kwargs={'booking_id': self.booking.id}))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, f"Sessions for {self.booking.student.full_name} with {self.booking.tutor.full_name} ({self.booking.term})")
+        self.assertContains(response, f"{self.booking.lesson_type} Sessions for {self.booking.student.full_name} with {self.booking.tutor.full_name} ({self.booking.term})")
         self.assertContains(response, self.session1.session_date.strftime('%d/%m/%Y'))
         self.assertContains(response, self.session2.session_date.strftime('%d/%m/%Y'))
 

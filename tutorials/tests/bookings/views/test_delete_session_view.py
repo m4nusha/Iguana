@@ -8,15 +8,13 @@ class DeleteSessionViewTest(TestCase):
     def setUp(self):
         self.student = User.objects.create(username="johndoe",first_name="John",last_name="Doe",email="johndoe@example.com")
         self.tutor = User.objects.create(username="janesmith",first_name="Jane",last_name="Smith",email="janesmith@example.com")
-        self.booking = Booking.objects.create(student=self.student,tutor=self.tutor,term="Fall 2024")
+        self.booking = Booking.objects.create(student=self.student,tutor=self.tutor,term="TERM1", lesson_type="WEEKLY")
         self.session = Session.objects.create(
             booking=self.booking,
             session_date="2025-01-01",
             session_time="10:00:00",
             duration="01:00:00",
-            lesson_type=Session.TYPE_WEEKLY,
             venue=Session.VENUE_BUSH_HOUSE,
-            amount=100.00,
             payment_status=Session.PAYMENT_PENDING
         )
         self.url = reverse('session_delete', kwargs={'pk': self.session.id})

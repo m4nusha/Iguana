@@ -14,7 +14,6 @@ from .models import Booking, Session, User
 from .forms import BookingForm, SessionForm, CreateUserForm, UserForm
 from django.shortcuts import get_object_or_404
 from django.db.models import Value, F, Func, CharField, Q
-from django.db import IntegrityError
 
 
 from .models import Student
@@ -349,10 +348,10 @@ def delete_student(request,student_id):
         return render(request,'delete_student.html', {'context': context,'student':student})
     
 @login_required
-
 def bookings_list(request):
     """Display a list of all bookings with filtering, ordering, and searching options."""
     term_filter = request.GET.get('term')  # Filter by term
+    lesson_type_filter = request.GET.get('lesson_type')  # Filter by lesson type
     order_by = request.GET.get('order')  # Order by student or tutor name
     student_search = request.GET.get('student_search')  # Search for student name
     tutor_search = request.GET.get('tutor_search')  # Search for tutor name
@@ -379,6 +378,10 @@ def bookings_list(request):
     if term_filter:
         bookings = bookings.filter(term=term_filter)
 
+    # Filter by lesson type
+    if lesson_type_filter:
+        bookings = bookings.filter(lesson_type=lesson_type_filter)
+
     # Search for student name
     if student_search:
         bookings = bookings.filter(student_full_name__icontains=student_search)
@@ -400,7 +403,9 @@ def bookings_list(request):
     return render(request, 'bookings/booking_list.html', {
         'bookings': bookings,
         'term_choices': Booking.TERM_CHOICES,
+        'lesson_type_choices': Booking.LESSON_TYPE_CHOICES,
         'term_filter': term_filter,
+        'lesson_type_filter': lesson_type_filter,
         'order_by': order_by,
         'student_search': student_search,
         'tutor_search': tutor_search,
@@ -458,14 +463,11 @@ def booking_show(request, booking_id):
     sessions = booking.sessions.all()
 
     # Get filter values from request
-    lesson_type = request.GET.get('type', None)
     venue = request.GET.get('venue', None)
     payment_status = request.GET.get('payment', None)
     order = request.GET.get('order', None)
 
     # Apply filters
-    if lesson_type:
-        sessions = sessions.filter(lesson_type=lesson_type)
     if venue:
         sessions = sessions.filter(venue=venue)
     if payment_status:
@@ -476,6 +478,10 @@ def booking_show(request, booking_id):
         sessions = sessions.order_by('session_date')
     elif order == 'furthest':
         sessions = sessions.order_by('-session_date')
+    
+    # Calculate Total Amount
+    for session in sessions:
+        session.calculated_total_amount = session.total_amount
 
     return render(
         request,
@@ -483,7 +489,6 @@ def booking_show(request, booking_id):
         {
             'booking': booking,
             'sessions': sessions,
-            'lesson_type_choices': Session.LESSON_TYPE_CHOICES,
             'venue_choices': Session.VENUE_CHOICES,
             'payment_status_choices': Session.PAYMENT_STATUS_CHOICES,
         },
@@ -493,6 +498,7 @@ def booking_show(request, booking_id):
 def session_create(request, booking_id):
     """Create a new session for a specific booking."""
     booking = get_object_or_404(Booking, id=booking_id)  # Get the booking instance
+    
     if request.method == 'POST':
         form = SessionForm(request.POST)
         if form.is_valid():
@@ -514,7 +520,7 @@ def session_show(request, pk):
 class SessionUpdateView(UpdateView):
     """Update a specific session."""
     model = Session
-    fields = ['session_date', 'session_time', 'duration', 'lesson_type', 'venue', 'amount', 'payment_status']
+    fields = ['session_date', 'session_time', 'duration', 'venue', 'payment_status']
     template_name = 'bookings/sessions/session_update.html'
 
     def get_success_url(self):

@@ -9,13 +9,14 @@ class UpdateBookingFormTestCase(TestCase):
     def setUp(self):
         self.student = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
         self.tutor = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
-        self.existing_booking = Booking.objects.create(term="Term1", student=self.student, tutor=self.tutor)
-        self.valid_data = {"term": "Term2","student": self.student.id,"tutor": self.tutor.id,}
+        self.existing_booking = Booking.objects.create(term="Term1", lesson_type="Weekly", student=self.student, tutor=self.tutor)
+        self.valid_data = {"term": "Term2", "lesson_type": "Weekly", "student": self.student.id, "tutor": self.tutor.id,}
 
     def test_form_contains_required_fields(self):
         """form contains required fields"""
         form = UpdateBookingForm(instance=self.existing_booking)
         self.assertIn("term", form.fields)
+        self.assertIn("lesson_type", form.fields)
         self.assertIn("student", form.fields)
         self.assertIn("tutor", form.fields)
 
@@ -26,7 +27,7 @@ class UpdateBookingFormTestCase(TestCase):
 
     def test_form_rejects_missing_required_fields(self):
         """form rejects when required fields are missing"""
-        required_fields = ["term", "student", "tutor"]
+        required_fields = ["term", "lesson_type", "student", "tutor"]
         for field in required_fields:
             incomplete_data = self.valid_data.copy()
             incomplete_data[field] = ""
@@ -63,6 +64,7 @@ class UpdateBookingFormTestCase(TestCase):
         """form allows partial updates that don't violate constraints"""
         partial_update_data = {
             "term": "Term2",
+            "lesson_type": "Weekly",
             "student": self.student.id,
             "tutor": self.tutor.id,
         }
@@ -70,6 +72,7 @@ class UpdateBookingFormTestCase(TestCase):
         self.assertTrue(form.is_valid())
         updated_booking = form.save()
         self.assertEqual(updated_booking.term, "Term2")
+        self.assertEqual(updated_booking.lesson_type, "Weekly")
 
     def test_form_rejects_invalid_fields(self):
         """form rejects invalid data for specific fields"""
@@ -97,7 +100,7 @@ class UpdateBookingFormTestCase(TestCase):
 
     def test_form_invalid_duplicate_booking(self):
         """form should be invalid if a duplicate booking exists"""
-        Booking.objects.create(term=self.valid_data["term"], student=self.student, tutor=self.tutor)
+        Booking.objects.create(term=self.valid_data["term"], lesson_type="Weekly", student=self.student, tutor=self.tutor)
         form = UpdateBookingForm(data=self.valid_data)
         self.assertFalse(form.is_valid())
         with self.assertRaises(ValidationError):

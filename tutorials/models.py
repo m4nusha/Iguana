@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.core.validators import RegexValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -126,35 +127,6 @@ class Booking(models.Model):
         (TERM3, 'Term 3'),
     ]
 
-    term = models.CharField(max_length=10, choices=TERM_CHOICES, default=TERM1)
-    student = models.ForeignKey(User, related_name='student_bookings', on_delete=models.CASCADE)
-    tutor = models.ForeignKey(User, related_name='tutor_bookings', on_delete=models.CASCADE)
-
-
-    class Meta:
-        ordering = ['term', 'student', 'tutor']
-        unique_together = ['term', 'student', 'tutor']
-        
-
-    def clean(self):
-        if not self.student_id or not self.tutor_id:
-            raise ValidationError("Both student and tutor must be assigned.")
-        if self.student_id == self.tutor_id:
-            raise ValidationError("A student cannot book themselves as a tutor.")
-        if not User.objects.filter(id=self.student_id).exists():
-            raise ValidationError(f"Student with ID {self.student_id} does not exist.")
-        if not User.objects.filter(id=self.tutor_id).exists():
-            raise ValidationError(f"Tutor with ID {self.tutor_id} does not exist.")
-        if Booking.objects.filter(term=self.term, student_id=self.student_id, tutor_id=self.tutor_id).exists():
-            raise ValidationError('A booking with the same details already exists.')
-
-    def __str__(self):
-        """return a readable string representation of booking"""
-        return f'{self.term} | Student: {self.student.full_name} | Tutor: {self.tutor.full_name}'
-    
-
-class Session(models.Model):
-    """Model to represent individual sessions within a booking."""
     TYPE_FORTNIGHT = 'Fortnight'
     TYPE_WEEKLY = 'Weekly'
     TYPE_BIWEEKLY = 'Bi-Weekly'
@@ -165,6 +137,35 @@ class Session(models.Model):
         (TYPE_BIWEEKLY, 'Bi-Weekly'),
     ]
 
+    term = models.CharField(max_length=10, choices=TERM_CHOICES, default=TERM1)
+    lesson_type = models.CharField(max_length=10, choices=LESSON_TYPE_CHOICES, default='Weekly')
+    student = models.ForeignKey(User, related_name='student_bookings', on_delete=models.CASCADE)
+    tutor = models.ForeignKey(User, related_name='tutor_bookings', on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['term', 'lesson_type', 'student', 'tutor']
+        unique_together = ['term', 'lesson_type', 'student', 'tutor']
+
+    def clean(self):
+        if not self.student_id or not self.tutor_id:
+            raise ValidationError("Both student and tutor must be assigned.")
+        if self.student_id == self.tutor_id:
+            raise ValidationError("A student cannot book themselves as a tutor.")
+        if not User.objects.filter(id=self.student_id).exists():
+            raise ValidationError(f"Student with ID {self.student_id} does not exist.")
+        if not User.objects.filter(id=self.tutor_id).exists():
+            raise ValidationError(f"Tutor with ID {self.tutor_id} does not exist.")
+        if Booking.objects.filter(term=self.term,lesson_type=self.lesson_type, student_id=self.student_id, tutor_id=self.tutor_id).exists():
+            raise ValidationError('A booking with the same details already exists.')
+
+    def __str__(self):
+        """return a readable string representation of booking"""
+        return f'{self.term} | Student: {self.student.full_name} | Tutor: {self.tutor.full_name}'
+    
+
+class Session(models.Model):
+    """Model to represent individual sessions within a booking."""
+    
     PAYMENT_PENDING = 'Pending'
     PAYMENT_SUCCESSFUL = 'Successful'
 
@@ -185,9 +186,7 @@ class Session(models.Model):
     session_date = models.DateField(default=date(2025, 1, 1))  # Use date object
     session_time = models.TimeField(default=time(0, 0))  # Use time object
     duration = models.DurationField(help_text='Format: [hours]:[minutes]', default=timedelta(hours=1))
-    lesson_type = models.CharField(max_length=10, choices=LESSON_TYPE_CHOICES, default='Weekly')
     venue = models.CharField(max_length=20, choices=VENUE_CHOICES, default='Bush House')
-    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], default=0)
     payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default='Pending')
 
     class Meta:
@@ -228,9 +227,38 @@ class Session(models.Model):
   
     def save(self, *args, **kwargs):
         self.full_clean()
+        if not self.booking:
+            return super().save(*args, **kwargs)
+
         super().save(*args, **kwargs)
 
+    def calculate_total_amount(self):
+        tutor = self.booking.tutor # UserInstance
+        tutor_instance = Tutor.objects.get(username_id=tutor.id)
+        tutor_rate=tutor_instance.rate
 
+        term_weeks = {
+            'Term1': Decimal(14),
+            'Term2': Decimal(11),
+            'Term3': Decimal(11),
+        }
+        lesson_type_multiplier = {
+            'Weekly': Decimal(1),
+            'Bi-Weekly': Decimal(2),
+            'Fortnight': Decimal(0.5),
+        }
+        # Get the term, lesson type, and duration in hours (in Decimal)
+        term = self.booking.term
+        lesson_type = self.booking.lesson_type
+        duration_hours = Decimal(self.duration.total_seconds() / 3600) if self.duration else Decimal(1)
+        weeks = term_weeks.get(term, 0)
+        multiplier = lesson_type_multiplier.get(lesson_type, Decimal(1))
+
+        return tutor_rate * duration_hours * weeks * multiplier
+    
+    @property
+    def total_amount(self):
+        return self.calculate_total_amount()
 
 
 class Tutor(models.Model):
@@ -255,7 +283,8 @@ class Tutor(models.Model):
         max_length=100,
         choices=SUBJECT_CHOICES,
         default='Python',
-    )   
+    )
+    rate = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.00)], default=10.00)
     
 
     def save(self, *args, **kwargs):
