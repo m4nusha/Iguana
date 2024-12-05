@@ -1,23 +1,28 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Session Details</title>
-</head>
-<body>
-    <h1>Session Details</h1>
-    <p><strong>Student Name:</strong> {{ session.booking.student.full_name }}</p>
-    <p><strong>Tutor Name:</strong> {{ session.booking.tutor.full_name }}</p>
-    <p><strong>Term:</strong> {{ session.booking.term }}</p>
-    <p><strong>Session Date:</strong> {{ session.session_date }}</p>
-    <p><strong>Session Time:</strong> {{ session.session_time }}</p>
-    <p><strong>Duration:</strong> {{ session.duration }} hours</p>
-    <p><strong>Lesson Type:</strong> {{ session.lesson_type }}</p>
-    <p><strong>Venue:</strong> {{ session.venue }}</p>
-    <p><strong>Amount:</strong> ${{ session.amount }}</p>
-    <p><strong>Payment Status:</strong> {{ session.payment_status }}</p>
+{% extends 'base_content.html' %}
 
-    <a href="{% url 'session_update' session.pk %}">Update</a>
-    <a href="{% url 'session_delete' session.pk %}">Delete</a>
-    <a href="{% url 'booking_show' session.booking.pk %}">Back to Booking</a>
-</body>
-</html>
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h1 class="card-title">Session Details</h1>
+        </div>
+        <div class="card-body">
+            <p><strong>Student Name:</strong> {{ session.booking.student.full_name }}</p>
+            <p><strong>Tutor Name:</strong> {{ session.booking.tutor.full_name }}</p>
+            <p><strong>Term:</strong> {{ session.booking.term }}</p>
+            <p><strong>Session Date:</strong> {{ session.session_date|date:"F j, Y" }}</p>
+            <p><strong>Session Time:</strong> {{ session.session_time|time:"H:i A" }}</p>
+            <p><strong>Duration:</strong> {{ session.duration }} hours</p>
+            <p><strong>Lesson Type:</strong> {{ session.lesson_type }}</p>
+            <p><strong>Venue:</strong> {{ session.venue }}</p>
+            <p><strong>Amount:</strong> ${{ session.amount }}</p>
+            <p><strong>Payment Status:</strong> {{ session.payment_status }}</p>
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+            <a href="{% url 'session_update' session.pk %}" class="btn btn-warning">Update</a>
+            <a href="{% url 'session_delete' session.pk %}" class="btn btn-danger">Delete</a>
+            <a href="{% url 'booking_show' session.booking.pk %}" class="btn btn-secondary">Back to Booking</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

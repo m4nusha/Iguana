@@ -1,6 +1,3 @@
-
-# additional tests to add: duplicate session with same booking, time, date
-
 from django.test import TestCase
 from tutorials.forms import UpdateSessionForm
 from tutorials.models import Session, Booking, User
@@ -18,18 +15,14 @@ class UpdateSessionFormTest(TestCase):
             session_date=future_date,
             session_time=time(10, 0),
             duration=timedelta(hours=1),
-            lesson_type=Session.TYPE_WEEKLY,
             venue=Session.VENUE_BUSH_HOUSE,
-            amount=50.00,
             payment_status=Session.PAYMENT_PENDING
         )
         self.valid_data = {
             "session_date": date.today() + timedelta(days=2),
             "session_time": time(11, 0),
             "duration": timedelta(hours=1),
-            "lesson_type": Session.TYPE_FORTNIGHT,
             "venue": Session.VENUE_WATERLOO,
-            "amount": 60.00,
             "payment_status": Session.PAYMENT_SUCCESSFUL,
             "booking": self.existing_booking.id
         }
@@ -40,9 +33,7 @@ class UpdateSessionFormTest(TestCase):
         self.assertIn("session_date", form.fields)
         self.assertIn("session_time", form.fields)
         self.assertIn("duration", form.fields)
-        self.assertIn("lesson_type", form.fields)
         self.assertIn("venue", form.fields)
-        self.assertIn("amount", form.fields)
         self.assertIn("payment_status", form.fields)
 
     def test_form_accepts_valid_data(self):
@@ -52,7 +43,7 @@ class UpdateSessionFormTest(TestCase):
 
     def test_form_rejects_missing_required_fields(self):
         """form rejects when required fields are missing"""
-        required_fields = ["session_date", "session_time", "duration", "lesson_type", "venue", "amount", "payment_status"]
+        required_fields = ["session_date", "session_time", "duration", "venue", "payment_status"]
         for field in required_fields:
             incomplete_data = self.valid_data.copy()
             incomplete_data[field] = ""
@@ -79,9 +70,7 @@ class UpdateSessionFormTest(TestCase):
             session_date="2025-01-01",  
             session_time="10:00", 
             duration=timedelta(hours=1), 
-            lesson_type="Weekly", 
             venue="Bush House", 
-            amount=100.00, 
             payment_status="Pending"
         )
         form = UpdateSessionForm(instance=session, data=invalid_data)
@@ -89,55 +78,18 @@ class UpdateSessionFormTest(TestCase):
         self.assertIn("session_time", form.errors)
         self.assertEqual(form.errors["session_time"], ["Enter a valid time."])
 
-    def test_form_rejects_invalid_amount(self):
-        """form rejects invalid amount"""
-        invalid_data = {
-            "amount": "-100.00",
-        }
-        session = Session.objects.create(
-            booking=self.existing_booking, 
-            session_date="2025-01-01",  
-            session_time="10:00", 
-            duration=timedelta(hours=1), 
-            lesson_type="Weekly", 
-            venue="Bush House", 
-            amount=100.00, 
-            payment_status="Pending"
-        )
-        form = UpdateSessionForm(instance=session, data=invalid_data)
-        self.assertFalse(form.is_valid())
-        self.assertIn("amount", form.errors)
-        self.assertEqual(form.errors["amount"], ["Ensure this value is greater than or equal to 0."])
-
     def test_form_keeps_existing_session_on_no_changes(self):
         """submitting form with no changes keeps the existing session"""
         form = UpdateSessionForm(instance=self.existing_session, data={
             "session_date": self.existing_session.session_date,
             "session_time": self.existing_session.session_time,
             "duration": self.existing_session.duration,
-            "lesson_type": self.existing_session.lesson_type,
             "venue": self.existing_session.venue,
-            "amount": self.existing_session.amount,
             "payment_status": self.existing_session.payment_status,
         })
         self.assertTrue(form.is_valid())
         unchanged_session = form.save()
         self.assertEqual(unchanged_session, self.existing_session)
-
-    def test_form_rejects_invalid_fields(self):
-        """form rejects invalid data for specific fields"""
-        invalid_cases = [
-            ("session_date", "InvalidDate", "session_date"),
-            ("session_time", "InvalidTime", "session_time"),
-            ("amount", -10.00, "amount"),
-        ]
-        for field_name, invalid_value, error_field in invalid_cases:
-            with self.subTest(field=field_name):
-                invalid_data = self.valid_data.copy()
-                invalid_data[field_name] = invalid_value
-                form = UpdateSessionForm(instance=self.existing_session, data=invalid_data)
-                self.assertFalse(form.is_valid())
-                self.assertIn(error_field, form.errors)
 
     def test_no_of_sessions_does_not_increase_on_update(self):
         """updating a session does not create a new session"""

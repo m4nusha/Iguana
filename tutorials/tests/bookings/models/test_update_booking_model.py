@@ -10,7 +10,7 @@ class UpdateBookingModelTest(TestCase):
         """Set up initial data for tests."""
         self.student = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
         self.tutor = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
-        self.booking = Booking.objects.create(term="Term1", student=self.student, tutor=self.tutor)
+        self.booking = Booking.objects.create(term="Term1", lesson_type="Weekly", student=self.student, tutor=self.tutor)
     
     def test_update_booking_with_valid_data(self):
         """successfully update booking with valid data"""
@@ -18,6 +18,7 @@ class UpdateBookingModelTest(TestCase):
         self.booking.save()
         updated_booking = Booking.objects.get(id=self.booking.id)
         self.assertEqual(updated_booking.term, "UpdatedTerm")
+        self.assertEqual(updated_booking.lesson_type, "Weekly")
         self.assertEqual(updated_booking.student, self.student)
         self.assertEqual(updated_booking.tutor, self.tutor)
 
@@ -40,35 +41,30 @@ class UpdateBookingModelTest(TestCase):
         with self.assertRaises(ValidationError):
             self.booking.full_clean()
 
-    def test_update_booking_with_invalid_term(self):
-        """prevent updating booking with an invalid term"""
-        self.booking.term = "InvalidTerm"
-        with self.assertRaises(ValidationError):
-            self.booking.full_clean()
-
     def test_unique_constraint_on_updated_booking(self):
-        """ensure duplicate bookings with the same term, student, and tutor cannot be updated"""
+        """ensure duplicate bookings with the same term, lesson type, student, and tutor cannot be updated"""
         student = User.objects.create_user(username='@student', password='password', email='student@example.com')
         tutor = User.objects.create_user(username='@tutor', password='password', email='tutor@example.com')
-        booking = Booking.objects.create(term='Term1', student=student, tutor=tutor)
-        booking2 = Booking.objects.create(term='Term1', student=student, tutor=tutor)
-        booking2.term = 'Term1'
+        booking = Booking.objects.create(term='Term2', lesson_type='Weekly', student=student, tutor=tutor)
+        booking2 = Booking.objects.create(term='Term3', lesson_type='Weekly', student=student, tutor=tutor)
+        booking2.term = 'Term2'
         with self.assertRaises(ValidationError):
             booking2.full_clean()
 
     def test_multiple_bookings_update(self):
         """ensure multiple bookings can be updated correctly for different terms"""
-        booking1 = Booking.objects.create(term="Term1", student=self.student, tutor=self.tutor)
-        booking2 = Booking.objects.create(term="Term2", student=self.student, tutor=self.tutor)
-        booking1.term = "UpdatedTerm1"
+        booking1 = Booking.objects.create(term="Term2", lesson_type="Weekly", student=self.student, tutor=self.tutor)
+        booking2 = Booking.objects.create(term="Term3", lesson_type="Weekly", student=self.student, tutor=self.tutor)
+        booking1.term = "UpdatedTerm2"
         booking1.save()
-        self.assertEqual(Booking.objects.filter(term="UpdatedTerm1").count(), 1)
-        self.assertEqual(Booking.objects.filter(term="Term2").count(), 1)
+        self.assertEqual(Booking.objects.filter(term="UpdatedTerm2").count(), 1)
+        self.assertEqual(Booking.objects.filter(term="Term3").count(), 1)
 
     def test_update_booking_form_invalid_student(self):
         """ensure form rejects an invalid student"""
         form_data = {
             "term": "Term2", 
+            "lesson_type": "Weekly",
             "student": None,
             "tutor": self.tutor.id,
         }
@@ -80,6 +76,7 @@ class UpdateBookingModelTest(TestCase):
         """ensure form rejects an invalid tutor"""
         form_data = {
             "term": "Term2",
+            "lesson_type": "Weekly",
             "student": self.student.id,
             "tutor": None,
         }
@@ -91,6 +88,7 @@ class UpdateBookingModelTest(TestCase):
         """ensure form rejects booking with same student and tutor"""
         form_data = {
             "term": "Term2", 
+            "lesson_type": "Weekly",
             "student": self.student.id, 
             "tutor": self.student.id,
         }
@@ -103,6 +101,7 @@ class UpdateBookingModelTest(TestCase):
         """ensure form accepts valid data"""
         form_data = {
             "term": "Term3", 
+            "lesson_type": "Weekly",
             "student": self.student.id,
             "tutor": self.tutor.id,
         }

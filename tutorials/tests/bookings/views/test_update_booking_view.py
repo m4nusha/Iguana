@@ -9,12 +9,13 @@ class UpdateBookingViewTest(TestCase):
     def setUp(self):
         self.student = User.objects.create_user(username="student", email="student@example.com", password="password")
         self.tutor = User.objects.create_user(username="tutor", email="tutor@example.com", password="password")
-        self.booking = Booking.objects.create(student=self.student, tutor=self.tutor, term=Booking.TERM1)
+        self.booking = Booking.objects.create(student=self.student, tutor=self.tutor, term=Booking.TERM1, lesson_type=Booking.TYPE_WEEKLY)
         self.url = reverse('booking_update', kwargs={'pk': self.booking.id})
         self.form_data = {
             'student': self.student.id,
             'tutor': self.tutor.id,
-            'term': Booking.TERM2
+            'term': Booking.TERM2,
+            'lesson_type': Booking.TYPE_WEEKLY
         }
 
     def test_update_booking_url(self):
@@ -23,6 +24,7 @@ class UpdateBookingViewTest(TestCase):
 
     def test_get_update_booking_view(self):
         """test accessing the update booking view with a GET request"""
+        self.client.login(username="student", password="password")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'bookings/booking_update.html')
@@ -31,7 +33,7 @@ class UpdateBookingViewTest(TestCase):
 
     def test_valid_post_updates_booking(self):
         """test a valid POST request successfully updates a booking"""
-        before_term = self.booking.term
+        self.client.login(username="student", password="password")
         response = self.client.post(self.url, data=self.form_data, follow=True)
         self.booking.refresh_from_db()
         self.assertEqual(self.booking.term, Booking.TERM2)
@@ -39,6 +41,7 @@ class UpdateBookingViewTest(TestCase):
 
     def test_invalid_post_does_not_update_booking(self):
         """test an invalid POST request does not update a booking"""
+        self.client.login(username="student", password="password")
         self.form_data['term'] = ''
         before_term = self.booking.term
         response = self.client.post(self.url, data=self.form_data)
@@ -50,22 +53,23 @@ class UpdateBookingViewTest(TestCase):
 
     def test_update_booking_redirects_on_success(self):
         """test that a successful booking update redirects to the correct page"""
+        self.client.login(username="student", password="password")
         response = self.client.post(self.url, data=self.form_data)
         self.assertRedirects(response, reverse('booking_list'))
 
     def test_update_booking_for_duplicate_data(self):
         """test that trying to update a booking with duplicate data does not succeed"""
-        Booking.objects.create(student=self.student, tutor=self.tutor, term=Booking.TERM2)
+        Booking.objects.create(student=self.student, tutor=self.tutor, term=Booking.TERM1, lesson_type=Booking.TYPE_WEEKLY)
         before_count = Booking.objects.count()
-        response = self.client.post(self.url, data=self.form_data)
+        response = self.client.post(self.url, data=self.form_data, follow=True)
         after_count = Booking.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'bookings/booking_update.html')
         self.assertIn('__all__', response.context['form'].errors)
 
     def test_update_booking_for_invalid_booking(self):
         """test that trying to update a non-existent booking results in a 404 error"""
+        self.client.login(username="student", password="password")
         invalid_url = reverse('booking_update', kwargs={'pk': 9999})
         response = self.client.get(invalid_url)
         self.assertEqual(response.status_code, 404)

@@ -1,11 +1,21 @@
-<h1>Create Session for {{ booking.student.full_name }} with {{ booking.tutor.full_name }}</h1>
-<div>
-    <label>Booking:</label>
-    <span>{{ booking }}</span> <!-- Display booking as plain text -->
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Create Session for {{ booking.student.full_name }} with {{ booking.tutor.full_name }}</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Booking Details</h5>
+            <p class="card-text"><strong>Booking:</strong> {{ booking }}</p>
+        </div>
+    </div>
+
+    <form method="post" class="mb-3">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Create Session</button>
+        <a href="{% url 'session_list' booking.id %}" class="btn btn-secondary">Back to Sessions</a>
+    </form>
 </div>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Create</button>
-</form>
-<a href="{% url 'session_list' booking.id %}">Back to Sessions</a>
+{% endblock %}

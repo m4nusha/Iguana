@@ -1,15 +1,18 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Delete Session</title>
-</head>
-<body>
-    <h1>Confirm Delete</h1>
-    <p>Are you sure you want to delete this session?</p>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">Yes, delete</button>
-    </form>
-    <a href="{% url 'session_list' session.booking.pk %}">Back to Booking</a>
-</body>
-</html>
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-body">
+            <h1 class="card-title text-danger">Confirm Delete</h1>
+            <p class="card-text">Are you sure you want to delete this session?</p>
+            
+            <form method="post" class="mb-3">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                <a href="{% url 'session_list' session.booking.pk %}" class="btn btn-secondary">Back to Booking</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
