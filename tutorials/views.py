@@ -88,8 +88,13 @@ class LogInView(LoginProhibitedMixin, View):
         self.next = request.POST.get('next') or 'dashboard' 
         user = form.get_user()
         if user is not None:
-            login(request, user)
-            return redirect(self.next)
+            # check if user is an admin
+            if user.user_type == 'admin':
+                login(request, user)
+                return redirect(self.next)
+            else:
+                messages.add_message(request, messages.ERROR, "Access denied: Only Admin users are allowed to log in.")
+                return self.render()
         messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
         return self.render()
 

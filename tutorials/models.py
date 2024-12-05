@@ -23,6 +23,7 @@ class User(AbstractUser):
     USER_TYPES = [
         ('student', 'Student'),
         ('tutor', 'Tutor'),
+        ('admin', 'Admin')
     ]
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
@@ -61,6 +62,10 @@ class User(AbstractUser):
     
     def save(self, *args, **kwargs):
         is_new = self.pk is None  # Check if the User is being created
+
+        if self.username == "@johndoe":
+            self.user_type = 'admin'
+
         super().save(*args, **kwargs)  # Call the parent save method
         
         # Ensure a Student instance is created if the user_type is 'student'
