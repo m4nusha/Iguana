@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Request Details</title>
+</head>
+<body>
+    <h1>Request Details</h1>
+    <p>{{ student_request.show_details|linebreaks }}</p>
+    <a href="{% url 'student_requests' %}">Back to Requests</a>
+</body>
+</html>

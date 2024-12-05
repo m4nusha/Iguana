@@ -8,8 +8,9 @@ class StudentFormTestCase(TestCase):
         self.user = User.objects.create(username="janedoe")  # Create a User instance
         self.form_input = {
             'name': "Doe, J.",
-            'username': self.user.id,  # Use the User instance's ID for the ForeignKey
+            'username': self.user,  # Use the User instance's ID for the ForeignKey
             'email': "janeDoe@gmail.com",  # Note the mixed case
+            'allocated': False,  # Add allocated field if missing
             'payment': 'Pending'  # Add the payment status field
         }
 
@@ -92,7 +93,7 @@ class StudentFormTestCase(TestCase):
         form = StudentForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
-# Test: Payment field
+    # Test: Payment field
     def test_payment_field(self):
         # Valid payment status
         valid_payment = ['Pending', 'Successful']

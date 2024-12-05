@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Requests</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #007BFF;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        select, button, input {
+            padding: 8px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Student Requests</h1>
+    <a href="{% url 'create_request' %}">Create Request</a>
+
+    <!-- Filter, Search, and Order Section -->
+    <form method="get" action="">
+        <!-- Filter by Status -->
+        <label for="status">Filter by Status:</label>
+        <select name="status" id="status">
+            <option value="">All</option>
+            {% for status in statuses %}
+                <option value="{{ status }}" {% if status == status_filter %}selected{% endif %}>
+                    {{ status|title }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <!-- Filter by Priority -->
+        <label for="priority">Filter by Priority:</label>
+        <select name="priority" id="priority">
+            <option value="">All</option>
+            {% for priority in priorities %}
+                <option value="{{ priority }}" {% if priority == priority_filter %}selected{% endif %}>
+                    {{ priority|title }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <!-- Filter by Request Type -->
+        <label for="request_type">Filter by Request Type:</label>
+        <select name="request_type" id="request_type">
+            <option value="">All</option>
+            {% for request_type in request_types %}
+                <option value="{{ request_type }}" {% if request_type == request_type_filter %}selected{% endif %}>
+                    {{ request_type|title }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <!-- Search by Name -->
+        <label for="search">Search by Name:</label>
+        <input
+            type="text"
+            id="search"
+            name="search"
+            placeholder="Enter name"
+            value="{{ search_query|default:'' }}"
+        />
+
+        <!-- Sorting Options -->
+        <label for="order_by">Order by Name:</label>
+        <button type="submit" name="order_by" value="asc" {% if order_by == 'asc' %}style="font-weight: bold;"{% endif %}>
+            A-Z
+        </button>
+        <button type="submit" name="order_by" value="desc" {% if order_by == 'desc' %}style="font-weight: bold;"{% endif %}>
+            Z-A
+        </button>
+
+        <!-- Filter Button -->
+        <button type="submit">Filter</button>
+    </form>
+
+    {% if requests %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Request Type</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for request in requests %}
+            <tr>
+                <td>{{ request.id }}</td>
+                <td>{{ request.name }}</td>
+                <td>{{ request.get_request_type_display }}</td>
+                <td>{{ request.get_status_display }}</td>
+                <td>{{ request.get_priority_display }}</td>
+                <td>{{ request.created_at }}</td>
+                <td>
+                    <a href="{% url 'show_request' request.id %}">Show</a>
+                    <a href="{% url 'update_request' request.id %}">Edit</a>
+                    <a href="{% url 'delete_request' request.id %}">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No requests available.</p>
+    {% endif %}
+</body>
+</html>
