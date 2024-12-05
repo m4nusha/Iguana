@@ -242,7 +242,7 @@ def create_user(request):
         form = UserForm()
     return render(request, 'create_user.html', {'form': form})
 
-def students(request):
+def students_list(request):
     """Display a list of all students with filtering, sorting, and searching options."""
     # Get filter and search parameters from the request
     allocated = request.GET.get('allocated')  # Filter for allocation status
@@ -281,7 +281,7 @@ def students(request):
         'search_query': search_query,
         'payment_choices': Student.PAYMENT_CHOICES,  # Pass payment choices to the template
     }
-    return render(request, 'students.html', context)
+    return render(request, 'students_list.html', context)
 
 def show_student(request, student_id):
     """Display further info on a student"""
@@ -303,8 +303,8 @@ def update_student(request,student_id):
             if form.is_valid():
                 try:
                     form.save()
-                except:
-                    form.add_error(None, "It was not possible to save this student to the database,")
+                except Exception as e:
+                    form.add_error(None, f"It was not possible to save this student to the database, {e}")
                 else:
                     path = reverse('students')  # go to list of students
                     return HttpResponseRedirect(path)
@@ -331,10 +331,45 @@ def delete_student(request,student_id):
 
 def student_requests(request):
     """
-    Display a list of all student requests.
+    Display a list of all student requests with filtering, search, and sorting options.
     """
-    # Fetch all student requests from the database
-    context = {'requests': StudentRequest.objects.all()}
+    # Get filter parameters from the query string
+    status_filter = request.GET.get('status', '')
+    priority_filter = request.GET.get('priority', '')
+    request_type_filter = request.GET.get('request_type', '')
+    search_query = request.GET.get('search', '')  # For search bar
+    order_by = request.GET.get('order_by', '')  # For sorting
+
+    # Fetch filtered requests
+    requests = StudentRequest.objects.all()
+
+    if status_filter:
+        requests = requests.filter(status=status_filter)
+    if priority_filter:
+        requests = requests.filter(priority=priority_filter)
+    if request_type_filter:
+        requests = requests.filter(request_type=request_type_filter)
+    if search_query:
+        requests = requests.filter(name__icontains=search_query)  # Case-insensitive search
+
+    # Apply sorting
+    if order_by == 'asc':
+        requests = requests.order_by('name')
+    elif order_by == 'desc':
+        requests = requests.order_by('-name')
+
+    # Pass filters and requests to the template
+    context = {
+        'requests': requests,
+        'status_filter': status_filter,
+        'priority_filter': priority_filter,
+        'request_type_filter': request_type_filter,
+        'search_query': search_query,
+        'order_by': order_by,
+        'statuses': [choice[0] for choice in StudentRequest._meta.get_field('status').choices],
+        'priorities': [choice[0] for choice in StudentRequest._meta.get_field('priority').choices],
+        'request_types': [choice[0] for choice in StudentRequest._meta.get_field('request_type').choices],
+    }
     return render(request, 'student_requests.html', context)
 
 def show_request(request, request_id):

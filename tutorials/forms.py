@@ -177,9 +177,6 @@ class TutorForm(forms.ModelForm):
 
         return cleaned_data
 
-
-
-
 class StudentForm(forms.ModelForm):
     """Form to create or update students"""
     class Meta:

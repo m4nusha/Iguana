@@ -31,26 +31,32 @@ urlpatterns = [
     path('password/', views.PasswordView.as_view(), name='password'),
     path('profile/', views.ProfileUpdateView.as_view(), name='profile'),
     path('sign_up/', views.SignUpView.as_view(), name='sign_up'),
+
+    #tutor add-ons
     path('tutors/',views.list_tutors, name='tutors'),
     path('tutors/<int:tutor_id>/',views.show_tutor, name='show_tutor'),
     path('tutors/create/',views.create_tutor, name='create_tutor'),
     path('tutors/<int:tutor_id>/edit/', views.update_tutor, name='update_tutor'),
     path('tutors/<int:tutor_id>/delete/', views.delete_tutor, name='delete_tutor'),
-    path('students/',views.students, name='students'),
+
+    #Students add-ons
+    path('students/',views.students_list, name='students'),
     path('students/<int:student_id>/',views.show_student, name='show_student'),
     path('update_student/<int:student_id>/', views.update_student, name='update_student'),
     path('delete_student/<int:student_id>/', views.delete_student, name='delete_student'),
+
+    #Student Requests add-ons
     path('requests/', views.student_requests, name='student_requests'),
     path('requests/<int:request_id>/', views.show_request, name='show_request'),
     path('create_request/', views.create_request, name='create_request'),
     path('update_request/<int:request_id>/', views.update_request, name='update_request'),
     path('delete_request/<int:request_id>/', views.delete_request, name='delete_request'),
+
+    #Users add-ons
     path('users/', views.users_list, name='users_list'),
     path('users/create/', views.create_user, name='create_user'),
     path('users/<int:user_id>/edit/', views.edit_user, name='edit_users_type'),
     #path('users/delete/<int:user_id>/', views.delete_user, name='delete_user'),
-    
-
 
     #Booking add-ons
     # List all bookings (Page 1)
