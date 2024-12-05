@@ -1,15 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Create Booking</title>
-</head>
-<body>
-    <h1>Create a New Booking</h1>
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm p-4">
+    <h1 class="text-primary mb-4">Create a New Booking</h1>
     <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Create</button>
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="d-flex justify-content-between mt-3">
+        <button type="submit" class="btn btn-success">
+          <i class="bi bi-plus-circle"></i> Create
+        </button>
+        <a href="{% url 'booking_list' %}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left"></i> Back to Bookings
+        </a>
+      </div>
     </form>
-    <a href="{% url 'booking_list' %}"><button>Back to Bookings</button></a>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}
