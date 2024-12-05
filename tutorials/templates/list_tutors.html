@@ -23,20 +23,20 @@
 </head>
 <body>
     <h1>List of Tutors</h1>
-    <a href="{% url 'create_tutor' %}">Create Tutor</a>
 
     <!-- Filter Section -->
     <form method="get" action="">
         <label for="subject">Filter by Subject:</label>
-        <select name="subject" id="subject">
-            <option value="">All Subjects</option>
-            {% for subject, subject_label in subject_choices %}
-                <option value="{{ subject }}" {% if request.GET.subject == subject %}selected{% endif %}>
-                    {{ subject_label }}
+        <select name ="subject" id = "subject">
+            <option value = ""> All Subjects </option>
+            {% for subject in subject_choices %}
+                <option value = "{{subject.name}}" {% if current_subject == subject.name %}selected{% endif %}>
+                    {{ subject.name }}
                 </option>
             {% endfor %}
         </select>
         <button type="submit">Filter</button>
+
 
         <!-- Search by Name -->
     <label for="search">Search by Name:</label>
@@ -67,7 +67,8 @@
                     <th>Name</th>
                     <th>Username</th>
                     <th>Email</th>
-                    <th>Subject</th>
+                    <th>Subjects</th>
+                    <th>Rate</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -77,7 +78,16 @@
                         <td>{{ tutor.name }}</td>
                         <td>{{ tutor.username }}</td>
                         <td>{{ tutor.email }}</td>
-                        <td>{{ tutor.subject }}</td>
+                        <td>
+                            {% if tutor.subjects.all %}
+                                {% for subject in tutor.subjects.all %}
+                                    {{subject.name}}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                No subjects assigned
+                            {% endif %}
+                        </td>
+                        <td>{{ tutor.rate }}</td>
                         <td>
                             <a href="{% url 'show_tutor' tutor.id %}">View</a>
                             <a href="{% url 'update_tutor' tutor.id %}">Edit</a>

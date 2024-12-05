@@ -19,7 +19,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 from tutorials import views
-from tutorials.views import list_tutors, create_tutor, update_tutor, delete_tutor, show_tutor
+from tutorials.views import list_tutors, update_tutor, delete_tutor, show_tutor
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -34,7 +34,6 @@ urlpatterns = [
     path('sign_up/', views.SignUpView.as_view(), name='sign_up'),
     path('tutors/',views.list_tutors, name='tutors'),
     path('tutors/<int:tutor_id>/',views.show_tutor, name='show_tutor'),
-    path('tutors/create/',views.create_tutor, name='create_tutor'),
     path('tutors/<int:tutor_id>/edit/', views.update_tutor, name='update_tutor'),
     path('tutors/<int:tutor_id>/delete/', views.delete_tutor, name='delete_tutor'),
     path('students/',views.students, name='students'),
