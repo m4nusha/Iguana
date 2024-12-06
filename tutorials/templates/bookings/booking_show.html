@@ -6,9 +6,7 @@
     <h1 class="text-primary">
       {{booking.lesson_type}} Sessions for {{ booking.student.name }} with {{ booking.tutor.name }} ({{ booking.term }})
     </h1>
-    <a href="{% url 'session_create' booking.id %}" class="btn btn-success">
-      <i class="bi bi-plus-circle"></i> Create Session
-    </a>
+    
   </div>
 
   <!-- Filter and Order Form -->
@@ -57,6 +55,9 @@
     </div>
     <div class="text-end">
       <button type="submit" class="btn btn-primary">Apply Filters</button>
+      <a href="{% url 'session_create' booking.id %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Create Session
+      </a>
     </div>
   </form>
 

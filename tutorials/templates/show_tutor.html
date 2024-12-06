@@ -1,27 +1,18 @@
+{% extends 'base_content.html' %}
 
-<html>
-<head>
-    <title>Tutor Information</title>
-</head>
-<body>
-    <h1>{{tutor.name}} - Details</h1>
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm p-4">
+    <h1 class="text-primary mb-4">Tutor Information</h1>
+    <p><strong>Name:</strong> {{ tutor.name }}</p>
+    <p><strong>Email:</strong> {{ tutor.email }}</p>
+    <p><strong>About:</strong> {{ tutor.description }}</p>
 
-    <p><strong>Name: </strong>{{tutor.name}}</p>
-    <p><strong>Email: </strong> {{tutor.email}}</p>
-    <p><strong>Subjects: </strong>
-    {% if subjects %}
-        <ul>
-            {% for subject in subjects %}
-                <li>{{subject.name}}</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p> No subjects assigned. </p>
-    {% endif %}   
-    </p>
-
-    <p><strong>Rate: </strong> {{tutor.rate}}</p>
-
-    <a href="{% url 'tutors' %}">Back to Tutors list</a>
-</body>
-</html>
+    <div class="mt-4">
+      <a href="{% url 'tutors' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Tutors List
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
