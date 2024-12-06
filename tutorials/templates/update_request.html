@@ -1,19 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Update Request</title>
-</head>
-<body>
-    <h1>Update Request</h1>
+{% extends 'base_content.html' %}
 
-    <!-- Form explicitly includes the action URL -->
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm p-4">
+    <h1 class="text-primary mb-4">Update Request</h1>
     <form action="{% url 'update_request' student_request.id %}" method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Update</button>
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="d-flex justify-content-between mt-3">
+        <button type="submit" class="btn btn-success">
+          <i class="bi bi-check-circle"></i> Update
+        </button>
+        <a href="{% url 'student_requests' %}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left"></i> Cancel
+        </a>
+      </div>
     </form>
-
-    <!-- Cancel link redirects to the list of requests -->
-    <a href="{% url 'student_requests' %}">Cancel</a>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}
