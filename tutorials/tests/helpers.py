@@ -25,8 +25,15 @@ class MenuTesterMixin(AssertHTMLMixin):
 
     def assert_menu(self, response):
         """Check that menu is present."""
+        expected_links = [
+        reverse('dashboard'),   # Dashboard
+        reverse('students'),    # Students
+        reverse('tutors'),      # Tutors
+        reverse('users_list'),  # Users
+        reverse('booking_list') # Bookings
+    ]   
 
-        for url in self.menu_urls:
+        for url in expected_links:
             with self.assertHTML(response, f'a[href="{url}"]'):
                 pass
 

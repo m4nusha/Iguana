@@ -102,7 +102,7 @@ class ProfileViewTest(TestCase):
         # Assert dashboard content
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'dashboard.html')
-        self.assertIn('Welcome to your dashboard @johndoe2', response.content.decode())
+        self.assertIn('Welcome to your Dashboard, @johndoe2', response.content.decode())
 
 
 
