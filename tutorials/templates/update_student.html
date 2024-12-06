@@ -1,15 +1,21 @@
+{% extends 'base_content.html' %}
 
-<html>
-<head>
-    <title>Update Student</title>
-</head>
-<body>
-    <h1>Update Student Info</h1>
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm p-4">
+    <h1 class="text-primary mb-4">Update Student Info</h1>
     <form action="{% url 'update_student' student.id %}" method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="Update">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="d-flex justify-content-between mt-3">
+        <button type="submit" class="btn btn-success">
+          <i class="bi bi-save"></i> Update
+        </button>
+        <a href="{% url 'students' %}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left"></i> Back to Students List
+        </a>
+      </div>
     </form>
-    <a href="{% url 'students' %}">Back to Students list</a>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}
