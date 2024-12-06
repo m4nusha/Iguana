@@ -1,12 +1,11 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
+from .models import Student, StudentRequest
 from .models import Tutor
 from .models import User, Booking, Session
 from django.core.exceptions import ValidationError
-
-from .models import Student
 
 
 class LogInForm(forms.Form):
@@ -150,7 +149,7 @@ class TutorForm(forms.ModelForm):
     """Form for creating and updating tutors."""
     class Meta:
         model = Tutor
-        fields = ['name', 'username', 'email', 'subject']
+        fields = ['name', 'username', 'email', 'subject', 'rate']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -175,9 +174,6 @@ class TutorForm(forms.ModelForm):
                 self.add_error('username', "This username is already taken.")
 
         return cleaned_data
-
-
-
 
 class StudentForm(forms.ModelForm):
     """Form to create or update students"""
@@ -217,16 +213,48 @@ class StudentForm(forms.ModelForm):
 
         return cleaned_data
 
+
+class StudentRequestForm(forms.ModelForm):
+    class Meta:
+        model = StudentRequest
+        fields = ['username', 'request_type', 'description', 'status', 'priority']
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)  # Get the instance without saving to the database yet
+        instance.name = instance.username.get_full_name()  # Populate the name based on the username
+        if commit:
+            instance.save()  # Save to the database
+        return instance
+
+    def clean(self):
+        cleaned_data = super().clean()
+        username = cleaned_data.get('username')
+        request_type = cleaned_data.get('request_type')
+
+        # Get the current instance ID if updating, otherwise None
+        instance_id = self.instance.id if self.instance else None
+
+        # Ensure uniqueness of request_type for the same username, excluding the current instance
+        if StudentRequest.objects.exclude(id=instance_id).filter(username=username, request_type=request_type).exists():
+            self.add_error(
+                'request_type',
+                f"A request of this type already exists for user @{username}."
+            )
+
+        return cleaned_data
+
+
 class BookingForm(forms.ModelForm):
     """Form to create or update a booking."""
 
     class Meta:
         model = Booking
-        fields = ['term', 'student', 'tutor']
+        fields = ['term','lesson_type', 'student', 'tutor']
 
     def clean(self):
         cleaned_data = super().clean()
         term = cleaned_data.get('term')
+        lesson_type = cleaned_data.get('lesson_type')
         student = cleaned_data.get('student')
         tutor = cleaned_data.get('tutor')
 
@@ -237,7 +265,7 @@ class BookingForm(forms.ModelForm):
             self.add_error('student', 'Student does not exist.')
         if tutor and not User.objects.filter(id=tutor.id).exists():
             self.add_error('tutor', 'Tutor does not exist.')
-        if Booking.objects.filter(term=term, student=student, tutor=tutor).exists():
+        if Booking.objects.filter(term=term, lesson_type=lesson_type, student=student, tutor=tutor).exists():
             raise ValidationError('A booking with the same details already exists.')
         
         return cleaned_data
@@ -248,11 +276,12 @@ class UpdateBookingForm(forms.ModelForm):
 
     class Meta:
         model = Booking
-        fields = ['term', 'student', 'tutor']
+        fields = ['term','lesson_type', 'student', 'tutor']
 
     def clean(self):
         cleaned_data = super().clean()
         term = cleaned_data.get('term')
+        lesson_type = cleaned_data.get('lesson_type')
         student = cleaned_data.get('student')
         tutor = cleaned_data.get('tutor')
 
@@ -266,7 +295,7 @@ class UpdateBookingForm(forms.ModelForm):
             self.add_error('tutor', 'The selected tutor does not exist.')
         if student == tutor:
             self.add_error('tutor', 'The student and tutor cannot be the same person.')
-        if Booking.objects.filter(term=term, student=student, tutor=tutor).exists():
+        if Booking.objects.filter(term=term, lesson_type=lesson_type, student=student, tutor=tutor).exists():
             raise ValidationError('A booking with the same details already exists.')
 
         return cleaned_data
@@ -277,23 +306,30 @@ class SessionForm(forms.ModelForm):
     class Meta:
         model = Session
         unique_together = ('booking', 'session_date', 'session_time')
-        fields = ['booking', 'session_date', 'session_time', 'duration', 'lesson_type', 'venue', 'amount', 'payment_status']
+        fields = ['booking', 'session_date', 'session_time', 'duration', 'venue', 'payment_status']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['booking'].widget = forms.HiddenInput()
+        booking = self.initial.get('booking', self.instance.booking if self.instance.pk else None)
+        
 
     def clean(self):
         cleaned_data = super().clean()
         booking = cleaned_data.get('booking')
+        duration = cleaned_data.get('duration')
         session_date = cleaned_data.get('session_date')
         session_time = cleaned_data.get('session_time')
-
+        
         if booking and session_date and session_time:
-            if Session.objects.filter(
-                booking=booking, session_date=session_date, session_time=session_time
-            ).exists():
+            if Session.objects.filter(booking=booking, session_date=session_date, session_time=session_time).exists():
                 raise forms.ValidationError(
                     {"__all__": "A session with this booking and date already exists."}
                 )
+
         return cleaned_data
     
+
     def clean_session_date(self):
         session_date = self.cleaned_data.get('session_date')
 
@@ -307,7 +343,7 @@ class UpdateSessionForm(forms.ModelForm):
 
     class Meta:
         model = Session
-        fields = ['session_date', 'session_time', 'duration', 'lesson_type', 'venue', 'amount', 'payment_status']
+        fields = ['session_date', 'session_time', 'duration', 'venue', 'payment_status']
     
     def clean(self):
         cleaned_data = super().clean()

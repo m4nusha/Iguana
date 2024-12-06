@@ -24,6 +24,18 @@
           {% endfor %}
         </select>
       </div>
+            <!-- Filter by Lesson Type -->
+      <div class="col-md-3 mb-3">
+        <label for="lesson_type" class="form-label">Filter by Type:</label>
+        <select name="lesson_type" id="lesson_type" class="form-select">
+          <option value="">All</option>
+          {% for value, lesson_type_label in lesson_type_choices %}
+            <option value="{{ value }}" {% if lesson_type_filter == value %}selected{% endif %}>
+              {{ lesson_type_label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
 
       <!-- Search for Student Name -->
       <div class="col-md-3 mb-3">
@@ -81,15 +93,18 @@
     <thead class="table-dark">
       <tr>
         <th scope="col">Term</th>
+        <th scope="col">Type</th>
         <th scope="col">Student</th>
         <th scope="col">Tutor</th>
         <th scope="col">Actions</th>
       </tr>
     </thead>
     <tbody>
+      {% if bookings %}
       {% for booking in bookings %}
       <tr>
         <td>{{ booking.term }}</td>
+        <td>{{ booking.lesson_type }}</td>
         <td>{{ booking.student.full_name }}</td>
         <td>{{ booking.tutor.full_name }}</td>
         <td>
@@ -107,7 +122,15 @@
         </td>
       </tr>
       {% endfor %}
+      {% else %}
+      <tr>
+        <td colspan="5" class="text-center">No bookings available.</td>
+      </tr>
+      {% endif %}
     </tbody>
   </table>
 </div>
 {% endblock %}
+
+
+<a href="{% url 'dashboard' %}"><button>Back to Dashboard</button></a>

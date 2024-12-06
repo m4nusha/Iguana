@@ -15,9 +15,7 @@ class CreateSessionViewTest(TestCase):
             'session_date': '2025-01-01',
             'session_time': '10:00:00',
             'duration': '3600',
-            'lesson_type': 'Weekly',
             'venue': 'Bush House',
-            'amount': '50.00',
             'payment_status': 'Pending',
         }
 
@@ -53,6 +51,7 @@ class CreateSessionViewTest(TestCase):
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 404)
 
+    # check!!
     def test_create_session_valid(self):
         """test a valid POST request to create a session"""
         before_count = Session.objects.count()
@@ -70,9 +69,7 @@ class CreateSessionViewTest(TestCase):
             session_date="2025-01-01",
             session_time="10:00:00",
             duration="3600",
-            lesson_type="Weekly",
             venue="Bush House",
-            amount="50.00",
             payment_status="Pending"
         )
         before_count = Session.objects.count()
@@ -104,6 +101,7 @@ class CreateSessionViewTest(TestCase):
         self.assertEqual(after_count, before_count)
         self.assertIn('payment_status', response.context['form'].errors)
 
+    # check!!
     def test_create_session_redirects_on_success(self):
         """test that a successful session creation redirects to the correct page"""
         self.form_data['booking'] = self.booking.id

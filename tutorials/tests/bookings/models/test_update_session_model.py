@@ -15,9 +15,7 @@ class UpdateSessionModelTest(TestCase):
             session_date=date(2025, 1, 1),
             session_time=time(14, 30),
             duration=timedelta(hours=1),
-            lesson_type=Session.TYPE_WEEKLY,
             venue=Session.VENUE_BUSH_HOUSE,
-            amount=Decimal('100.00'),
             payment_status=Session.PAYMENT_PENDING
         )
         self.session2 = Session.objects.create(
@@ -25,9 +23,7 @@ class UpdateSessionModelTest(TestCase):
             session_date=date(2025, 1, 2),
             session_time=time(10, 0),
             duration=timedelta(hours=1),
-            lesson_type=Session.TYPE_BIWEEKLY,
             venue=Session.VENUE_WATERLOO,
-            amount=150.00,
             payment_status=Session.PAYMENT_SUCCESSFUL
         )
 
@@ -35,22 +31,14 @@ class UpdateSessionModelTest(TestCase):
         """update session with valid data"""
         self.session.session_date = date(2025, 1, 2)
         self.session.session_time = time(16, 0)
-        self.session.amount = Decimal('150.00')
         self.session.save()
         self.session.refresh_from_db()
         self.assertEqual(self.session.session_date, date(2025, 1, 2))
         self.assertEqual(self.session.session_time, time(16, 0))
-        self.assertEqual(self.session.amount, Decimal('150.00'))
 
     def test_update_session_with_invalid_date(self):
         """a session cannot be updated with an invalid date"""
         self.session.session_date = date(2020, 1, 1)
-        with self.assertRaises(ValidationError):
-            self.session.full_clean()
-
-    def test_update_session_with_negative_amount(self):
-        """a session cannot be updated with a negative amount"""
-        self.session.amount = Decimal('-50.00')
         with self.assertRaises(ValidationError):
             self.session.full_clean()
 
@@ -61,9 +49,7 @@ class UpdateSessionModelTest(TestCase):
             session_date=date(2025, 1, 1),
             session_time=time(10, 0),
             duration=timedelta(hours=2),
-            lesson_type=Session.TYPE_WEEKLY,
             venue=Session.VENUE_BUSH_HOUSE,
-            amount=Decimal('100.00'),
             payment_status=Session.PAYMENT_PENDING
         )
         self.session.session_time = time(11, 0)
@@ -77,9 +63,7 @@ class UpdateSessionModelTest(TestCase):
             session_date='2025-01-03',
             session_time='12:30:00',
             duration='01:00:00',
-            lesson_type='Weekly',
             venue='Bush House',
-            amount=100.00,
             payment_status='Pending'
         )
         with self.assertRaises(ValidationError):
@@ -88,9 +72,7 @@ class UpdateSessionModelTest(TestCase):
                 session_date='2025-01-03',
                 session_time='12:30:00',
                 duration='01:00:00',
-                lesson_type='Weekly',
                 venue='Bush House',
-                amount=100.00,
                 payment_status='Pending'
             )
             session.full_clean()

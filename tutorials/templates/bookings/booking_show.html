@@ -4,7 +4,7 @@
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="text-primary">
-      Sessions for {{ booking.student.full_name }} with {{ booking.tutor.full_name }} ({{ booking.term }})
+      {{booking.lesson_type}} Sessions for {{ booking.student.full_name }} with {{ booking.tutor.full_name }} ({{ booking.term }})
     </h1>
     <a href="{% url 'session_create' booking.id %}" class="btn btn-success">
       <i class="bi bi-plus-circle"></i> Create Session
@@ -14,18 +14,6 @@
   <!-- Filter and Order Form -->
   <form method="get" class="mb-4">
     <div class="row">
-      <!-- Filter by Type -->
-      <div class="col-md-3 mb-3">
-        <label for="type" class="form-label">Filter by Type:</label>
-        <select name="type" id="type" class="form-select">
-          <option value="">All</option>
-          {% for value, label in lesson_type_choices %}
-          <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>
-            {{ label }}
-          </option>
-          {% endfor %}
-        </select>
-      </div>
 
       <!-- Filter by Venue -->
       <div class="col-md-3 mb-3">
@@ -79,9 +67,8 @@
           <th scope="col">Date</th>
           <th scope="col">Time</th>
           <th scope="col">Duration</th>
-          <th scope="col">Type</th>
           <th scope="col">Venue</th>
-          <th scope="col">Amount</th>
+          <th scope="col">Total Amount</th>
           <th scope="col">Payment</th>
           <th scope="col">Actions</th>
         </tr>
@@ -92,9 +79,8 @@
           <td>{{ session.session_date|date:"d/m/Y" }}</td>
           <td>{{ session.session_time|time:"H:i" }}</td>
           <td>{{ session.duration }}</td>
-          <td>{{ session.lesson_type }}</td>
           <td>{{ session.venue }}</td>
-          <td>${{ session.amount }}</td>
+          <td>${{ session.total_amount }}</td>
           <td>{{ session.payment_status }}</td>
           <td>
             <div class="btn-group" role="group" aria-label="Actions">
