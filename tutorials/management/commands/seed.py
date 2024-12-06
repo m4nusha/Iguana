@@ -3,21 +3,21 @@ from django.core.management.base import BaseCommand, CommandError
 from tutorials.models import User, Student, Tutor, Booking, Session #
 import pytz
 from faker import Faker
-from random import randint, random
+import random
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
  ##
  
 user_fixtures = [
-    {'username': '@johndoe', 'email': 'john.doe@example.org', 'first_name': 'John', 'last_name': 'Doe','Type':'Admin'},
-    {'username': '@janedoe', 'email': 'jane.doe@example.org', 'first_name': 'Jane', 'last_name': 'Doe','Type':'Tutor','Subject':'Python'},
-    {'username': '@charlie', 'email': 'charlie.johnson@example.org', 'first_name': 'Charlie', 'last_name': 'Johnson','Type':'Student','Allocated':False,'Payment':'Pending'}, # Or [(PENDING, 'Pending'),(SUCCESSFUL, 'Successful')]
+    {'username': '@johndoe', 'email': 'john.doe@example.org', 'first_name': 'John', 'last_name': 'Doe','type':'Admin'},
+    {'username': '@janedoe', 'email': 'jane.doe@example.org', 'first_name': 'Jane', 'last_name': 'Doe','type':'Tutor','subject':'Python'},
+    {'username': '@charlie', 'email': 'charlie.johnson@example.org', 'first_name': 'Charlie', 'last_name': 'Johnson','type':'Student','allocated':False,'payment':'Pending'}, # Or [(PENDING, 'Pending'),(SUCCESSFUL, 'Successful')]
     
     #Extra predefined users
-    {'username': '@Jamesdan', 'email': 'james.dan@example.org', 'first_name': 'James', 'last_name': 'Dan','Type':'Admin'},
-    {'username': '@Bobmark', 'email': 'bob.mark@example.org', 'first_name': 'Bob', 'last_name': 'Mark','Type':'Tutor','Subject':''},
-    {'username': '@Saralee', 'email': 'sara.lee@example.org', 'first_name': 'Sara', 'last_name': 'Lee','Type':'Student','Allocated':False,'Payment':'Pending'}, # Or [(PENDING, 'Pending'),(SUCCESSFUL, 'Successful')]
+    {'username': '@Jamesdan', 'email': 'james.dan@example.org', 'first_name': 'James', 'last_name': 'Dan','type':'Admin'},
+    {'username': '@Bobmark', 'email': 'bob.mark@example.org', 'first_name': 'Bob', 'last_name': 'Mark','type':'Tutor','subject':'Python'},
+    {'username': '@Saralee', 'email': 'sara.lee@example.org', 'first_name': 'Sara', 'last_name': 'Lee','type':'Student','allocated':False,'payment':'Pending'}, # Or [(PENDING, 'Pending'),(SUCCESSFUL, 'Successful')]
 ]
 
 
@@ -115,7 +115,7 @@ class Command(BaseCommand):
             term = random.choice(terms)
 
             try:
-                Booking.objects.create(
+                Booking.objects.create( #ERROR
                     term=term,
                     student=student,
                     tutor=tutor
@@ -171,34 +171,36 @@ class Command(BaseCommand):
 
     def create_user(self, data):
         base_data = {
-            'username' : data['username'],
-            'email' : data['email'],
-            'password' : Command.DEFAULT_PASSWORD,
-            'first_name' : data['first_name'],
-            'last_name' : data['last_name'],
+            'username': data['username'],
+            'email': data['email'],
+            'password': self.DEFAULT_PASSWORD,
+            'first_name': data['first_name'],
+            'last_name': data['last_name'],
             'type': data['type']
         }
-        
+
         if data['type'] == 'Student':
-            student = Student.objects.create_user(
-                **base_data 
+            student = Student.objects.create(
+                **base_data,
+                allocated=data.get('allocated', False), # something is wrong
+                payment=data.get('payment', 'Pending')  # something is wrong
             )
             return student
-        
+
         if data['type'] == 'Tutor':
-            tutor = Tutor.objects.create_user(
-                **base_data 
+            tutor = Tutor.objects.create(
+                **base_data,
+                subject=data.get('subject', 'Python')
             )
             return tutor
-        
-        elif data['type'] == 'Admin':
-            user = User.objects.create_user(
-                **base_data # what can the admin access Add boolean admin prevlidges 
-            )
-            return user
-        
-             
 
+        if data['type'] == 'Admin':
+            # what can the admin access? Add boolean admin prevlidges 
+            user = User.objects.create_superuser(**base_data)
+            return user
+
+        
+    
 def create_username(first_name, last_name):
     base_username = '@' + first_name.strip().lower() + last_name.strip().lower()
     username = base_username
