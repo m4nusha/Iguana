@@ -1,115 +1,121 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Student List</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-        a {
-            margin-right: 10px;
-            text-decoration: none;
-            color: #007BFF;
-        }
-    </style>
-</head>
-<body>
-    <h1>Student List</h1>
+{% extends 'base_content.html' %}
 
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm p-4">
+    <h1 class="text-primary mb-4">Student List</h1>
+    
     <!-- Filter, Search, and Order Section -->
-    <form method="get" action="">
+    <form method="get" action="" class="mb-4">
+      <div class="row">
         <!-- Filter by Allocated -->
-        <label for="allocated">Filter by Allocation:</label>
-        <select name="allocated" id="allocated">
+        <div class="col-md-4 mb-3">
+          <label for="allocated" class="form-label">Filter by Allocation:</label>
+          <select name="allocated" id="allocated" class="form-select">
             <option value="">All</option>
             <option value="true" {% if current_allocated == 'true' %}selected{% endif %}>Allocated</option>
             <option value="false" {% if current_allocated == 'false' %}selected{% endif %}>Not Allocated</option>
-        </select>
+          </select>
+        </div>
 
         <!-- Filter by Payment -->
-        <label for="payment">Filter by Payment:</label>
-        <select name="payment" id="payment">
+        <div class="col-md-4 mb-3">
+          <label for="payment" class="form-label">Filter by Payment:</label>
+          <select name="payment" id="payment" class="form-select">
             <option value="">All</option>
             {% for value, label in payment_choices %}
-                <option value="{{ value }}" {% if current_payment == value %}selected{% endif %}>
-                    {{ label }}
-                </option>
+              <option value="{{ value }}" {% if current_payment == value %}selected{% endif %}>
+                {{ label }}
+              </option>
             {% endfor %}
-        </select>
-        <!-- Filter Button -->
-        <button type="submit">Filter</button>
+          </select>
+        </div>
 
         <!-- Search by Name -->
-        <label for="search">Search by Name:</label>
-        <input
+        <div class="col-md-4 mb-3">
+          <label for="search" class="form-label">Search by Name:</label>
+          <input
             type="text"
             id="search"
             name="search"
             placeholder="Enter student name"
             value="{{ search_query|default:'' }}"
-        />
+            class="form-control"
+          />
+        </div>
 
         <!-- Order by Name -->
-        <label for="order">Order by Name:</label>
-        <button type="submit" name="order" value="asc" {% if current_order == 'asc' %}style="font-weight: bold;"{% endif %}>
+        <div class="col-md-12 d-flex justify-content-start mb-3">
+          <label for="order" class="form-label me-2">Order by Name:</label>
+          <button type="submit" name="order" value="asc" class="btn btn-outline-primary me-2 {% if current_order == 'asc' %}active{% endif %}">
             A-Z
-        </button>
-        <button type="submit" name="order" value="desc" {% if current_order == 'desc' %}style="font-weight: bold;"{% endif %}>
+          </button>
+          <button type="submit" name="order" value="desc" class="btn btn-outline-primary {% if current_order == 'desc' %}active{% endif %}">
             Z-A
-        </button>
+          </button>
+        </div>
 
-        
+        <div class="col-md-12 text-end">
+          <button type="submit" class="btn btn-primary">Apply Filters</button>
+        </div>
+      </div>
     </form>
-    <br>
 
-    {% if students %}
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Allocated</th>
-                <th>Payment</th> 
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for student in students %}
-            <tr>
-                <td>{{ student.name }}</td>
-                <td>{{ student.username }}</td>
-                <td>{{ student.email }}</td>
-                <td>
-                    {% if student.allocated %}
-                        Yes
-                    {% else %}
-                        No
-                    {% endif %}
-                </td>
-                <td>{{ student.payment }}</td> 
-                <td>
-                    <a href="{% url 'show_student' student.id %}">Show</a>
-                    <a href="{% url 'update_student' student.id %}">Update</a>
-                    <a href="{% url 'delete_student' student.id %}">Delete</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
+    <!-- Student Table -->
+    <table class="table table-striped table-bordered">
+      <thead class="table-dark">
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Username</th>
+          <th scope="col">Email</th>
+          <th scope="col">Allocated</th>
+          <th scope="col">Payment</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if students %}
+        {% for student in students %}
+        <tr>
+          <td>{{ student.name }}</td>
+          <td>{{ student.username }}</td>
+          <td>{{ student.email }}</td>
+          <td>
+            {% if student.allocated %}
+              Yes
+            {% else %}
+              No
+            {% endif %}
+          </td>
+          <td>{{ student.payment }}</td>
+          <td>
+            <div class="btn-group" role="group" aria-label="Actions">
+              <a href="{% url 'show_student' student.id %}" class="btn btn-info btn-sm" title="Show">
+                <i class="bi bi-eye"></i>
+              </a>
+              <a href="{% url 'update_student' student.id %}" class="btn btn-warning btn-sm" title="Update">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <a href="{% url 'delete_student' student.id %}" class="btn btn-danger btn-sm" title="Delete">
+                <i class="bi bi-trash"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+          <td colspan="6" class="text-center">No students available.</td>
+        </tr>
+        {% endif %}
+      </tbody>
     </table>
-    {% else %}
-        <p>No students available.</p>
-    {% endif %}
-</body>
-</html>
-<a href="{% url 'dashboard' %}"><button>Back to Dashboard</button></a>
+  </div>
+</div>
 
+<div class="text-end mt-3">
+  <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+  </a>
+</div>
+{% endblock %}
