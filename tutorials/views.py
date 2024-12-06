@@ -13,7 +13,9 @@ from tutorials.helpers import login_prohibited
 from .models import Booking, Session, User
 from .forms import BookingForm, SessionForm, CreateUserForm, UserForm
 from django.shortcuts import get_object_or_404
-from django.db.models import Value, F, Func, CharField, Q
+from django.db.models import Value, F, CharField
+#from django.db.models import Value
+from django.db.models.functions import Concat
 
 
 from .models import Student,StudentRequest
@@ -456,20 +458,18 @@ def bookings_list(request):
     student_search = request.GET.get('student_search')  # Search for student name
     tutor_search = request.GET.get('tutor_search')  # Search for tutor name
 
-    # Annotate full_name for students and tutors
+    # Annotate full_name for students and tutors using Concat
     bookings = Booking.objects.annotate(
-        student_full_name=Func(
+        student_full_name=Concat(
             F('student__first_name'),
             Value(' '),
             F('student__last_name'),
-            function='CONCAT',
             output_field=CharField()
         ),
-        tutor_full_name=Func(
+        tutor_full_name=Concat(
             F('tutor__first_name'),
             Value(' '),
             F('tutor__last_name'),
-            function='CONCAT',
             output_field=CharField()
         )
     )
@@ -510,7 +510,6 @@ def bookings_list(request):
         'student_search': student_search,
         'tutor_search': tutor_search,
     })
-
 
 # Create Booking
 def booking_create(request):
