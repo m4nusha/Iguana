@@ -1,13 +1,18 @@
-<html>
-<head>
-    <title>You are viewing:</title>
-</head>
-<body>
-    <h1>Student Info</h1>
-    <p><strong>Name: </strong>{{student.name}}</p>
-    <p><strong>Email: </strong> {{student.email}}</p>
-    <p><strong>About: </strong>{{student.description}}</p>
+{% extends 'base_content.html' %}
 
-    <a href="{% url 'students' %}">Back to Students list</a>
-</body>
-</html>
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm p-4">
+    <h1 class="text-primary mb-4">Student Info</h1>
+    <p><strong>Name:</strong> {{ student.name }}</p>
+    <p><strong>Email:</strong> {{ student.email }}</p>
+    <p><strong>About:</strong> {{ student.description }}</p>
+
+    <div class="mt-4">
+      <a href="{% url 'students' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Students List
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
