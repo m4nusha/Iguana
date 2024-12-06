@@ -363,21 +363,10 @@ def bookings_list(request):
 
     # Annotate full_name for students and tutors
     bookings = Booking.objects.annotate(
-        student_full_name=Func(
-            F('student__first_name'),
-            Value(' '),
-            F('student__last_name'),
-            function='CONCAT',
-            output_field=CharField()
-        ),
-        tutor_full_name=Func(
-            F('tutor__first_name'),
-            Value(' '),
-            F('tutor__last_name'),
-            function='CONCAT',
-            output_field=CharField()
-        )
+        student_name=F('student__name'),
+        tutor_name=F('tutor__name')
     )
+
 
     # Filter by term
     if term_filter:
