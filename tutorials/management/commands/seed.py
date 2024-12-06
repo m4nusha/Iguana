@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
  
 user_fixtures = [
     {'username': '@johndoe', 'email': 'john.doe@example.org', 'first_name': 'John', 'last_name': 'Doe','Type':'Admin'},
-    {'username': '@janedoe', 'email': 'jane.doe@example.org', 'first_name': 'Jane', 'last_name': 'Doe','Type':'Tutor','Subject':''},
+    {'username': '@janedoe', 'email': 'jane.doe@example.org', 'first_name': 'Jane', 'last_name': 'Doe','Type':'Tutor','Subject':'Python'},
     {'username': '@charlie', 'email': 'charlie.johnson@example.org', 'first_name': 'Charlie', 'last_name': 'Johnson','Type':'Student','Allocated':False,'Payment':'Pending'}, # Or [(PENDING, 'Pending'),(SUCCESSFUL, 'Successful')]
     
     #Extra predefined users
@@ -25,20 +25,20 @@ class Command(BaseCommand):
     """Build automation command to seed the database."""
 
     USER_COUNT = 300
-    #BOOKING_COUNT = 200?
-    #SESSION_COUNT = 100?
-    #?TUTOR_COUNT = 75 
-    #?STUDENT_COUNT = 210
-    #?ADMIN_COUNT = 15
+    BOOKING_COUNT = 200
+    SESSION_COUNT = 100
+
     DEFAULT_PASSWORD = 'Password123'
     help = 'Seeds the database with sample data'
 
     def __init__(self):
         self.faker = Faker('en_GB')
+        #Tala says add the functions in handle here
+        
 
-    def handle(self, *args, **options): #make sure it's correct
+    def handle(self, *args, **options): #make sure it's correct #There's an error
         self.create_users()
-        self.create_bookings()
+        self.create_bookings() #ERROR
         self.create_sessions()
         self.users = User.objects.all()
         self.booking = Booking.objects.all()
@@ -51,7 +51,7 @@ class Command(BaseCommand):
     
     #####
     def create_bookings(self):
-        self.generate_random_bookings()
+        self.generate_random_bookings() #ERROR
         
     def create_sessions(self):      
         self.generate_random_sessions()
@@ -73,9 +73,9 @@ class Command(BaseCommand):
     #
     def generate_random_bookings(self): ##
         booking_count = Booking.objects.count()
-        while  booking_count < self.BOOKING_COUNT:
+        while  booking_count < self.BOOKING_COUNT: #ERROR
             print(f"Seeding booking {booking_count}/{self.BOOKING_COUNT}", end='\r')
-            self.generate_booking()
+            self.generate_booking() #ERROR
             booking_count = Booking.objects.count()
         print("Booking seeding complete. ")
         
@@ -106,15 +106,16 @@ class Command(BaseCommand):
         tutors = Tutor.objects.all()
 
         if not students.exists() or not tutors.exists():
-            print("Insufficient students or tutors to create bookings.")
+            print("No students or tutors available to create bookings.")
             return
 
         for _ in range(self.BOOKING_COUNT):
             student = random.choice(students)
             tutor = random.choice(tutors)
             term = random.choice(terms)
+
             try:
-                booking = Booking.objects.create(
+                Booking.objects.create(
                     term=term,
                     student=student,
                     tutor=tutor
@@ -124,7 +125,7 @@ class Command(BaseCommand):
                 continue
         print(f"Created {Booking.objects.count()} bookings.")
 
-        
+
         
     def generate_session(self):
         bookings = Booking.objects.all()
@@ -137,20 +138,18 @@ class Command(BaseCommand):
 
         for _ in range(self.SESSION_COUNT):
             booking = random.choice(bookings)
-            session_date = self.faker.date_between(start_date="today", end_date="+30d")#
-            session_time = self.faker.time_object() #8am - 6pm
-            duration = timedelta(hours=random.randint(1, 4)) # 1 - 4 
-            lesson_type = random.choice(lesson_types) # add to bookings instead of session
+            session_date = self.faker.date_between(start_date="today", end_date="+30d")
+            session_time = self.faker.time_object()
+            duration = timedelta(hours=random.randint(1, 4))
             venue = random.choice(venues)
             payment_status = random.choice(['Pending', 'Successful'])
 
             try:
-                session = Session.objects.create(
+                Session.objects.create(
                     booking=booking,
                     session_date=session_date,
                     session_time=session_time,
                     duration=duration,
-                    lesson_type=lesson_type,
                     venue=venue,
                     payment_status=payment_status,
                 )
@@ -158,6 +157,7 @@ class Command(BaseCommand):
                 print(f"Error creating session: {e}")
                 continue
         print(f"Created {Session.objects.count()} sessions.")
+
 
              
        
@@ -167,7 +167,7 @@ class Command(BaseCommand):
         try:
             self.create_user(data)
         except Exception as e: #not sure tbh
-            print(f"Error creating user {data ['username']}:{e}") #pass
+            print(f"Error creating user {data ['username']}: {e}") #pass
 
     def create_user(self, data):
         base_data = {
@@ -193,7 +193,7 @@ class Command(BaseCommand):
         
         elif data['type'] == 'Admin':
             user = User.objects.create_user(
-                **base_data # what can the admin access
+                **base_data # what can the admin access Add boolean admin prevlidges 
             )
             return user
         
