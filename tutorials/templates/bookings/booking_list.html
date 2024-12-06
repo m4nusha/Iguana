@@ -105,8 +105,8 @@
       <tr>
         <td>{{ booking.term }}</td>
         <td>{{ booking.lesson_type }}</td>
-        <td>{{ booking.student.full_name }}</td>
-        <td>{{ booking.tutor.full_name }}</td>
+        <td>{{ booking.student.name }}</td>
+        <td>{{ booking.tutor.name }}</td>
         <td>
           <div class="btn-group" role="group" aria-label="Actions">
             <a href="{% url 'session_list' booking.pk %}" class="btn btn-info btn-sm" title="Show">
