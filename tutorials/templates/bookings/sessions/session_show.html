@@ -7,8 +7,8 @@
             <h1 class="card-title">Session Details</h1>
         </div>
         <div class="card-body">
-            <p><strong>Student Name:</strong> {{ session.booking.student.full_name }}</p>
-            <p><strong>Tutor Name:</strong> {{ session.booking.tutor.full_name }}</p>
+            <p><strong>Student Name:</strong> {{ session.booking.student.name }}</p>
+            <p><strong>Tutor Name:</strong> {{ session.booking.tutor.name }}</p>
             <p><strong>Term:</strong> {{ session.booking.term }}</p>
             <p><strong>Session Date:</strong> {{ session.session_date|date:"F j, Y" }}</p>
             <p><strong>Session Time:</strong> {{ session.session_time|time:"H:i A" }}</p>
