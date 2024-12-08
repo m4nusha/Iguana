@@ -90,8 +90,13 @@ class LogInView(LoginProhibitedMixin, View):
         self.next = request.POST.get('next') or 'dashboard' 
         user = form.get_user()
         if user is not None:
-            login(request, user)
-            return redirect(self.next)
+            # check if user is an admin
+            if user.user_type == 'admin':
+                login(request, user)
+                return redirect(self.next)
+            else:
+                messages.add_message(request, messages.ERROR, "Access denied: Only Admin users are allowed to log in.")
+                return self.render()
         messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
         return self.render()
 
@@ -460,19 +465,23 @@ def bookings_list(request):
 
     # Annotate full_name for students and tutors using Concat
     bookings = Booking.objects.annotate(
-        student_full_name=Concat(
-            F('student__first_name'),
-            Value(' '),
-            F('student__last_name'),
-            output_field=CharField()
-        ),
-        tutor_full_name=Concat(
-            F('tutor__first_name'),
-            Value(' '),
-            F('tutor__last_name'),
-            output_field=CharField()
-        )
+        student_name=F('student__name'),
+        tutor_name=F('tutor__name')
+        # raghad's version if we need it
+        # student_full_name=Concat(
+        #     F('student__first_name'),
+        #     Value(' '),
+        #     F('student__last_name'),
+        #     output_field=CharField()
+        # ),
+        # tutor_full_name=Concat(
+        #     F('tutor__first_name'),
+        #     Value(' '),
+        #     F('tutor__last_name'),
+        #     output_field=CharField()
+        # )
     )
+
 
     # Filter by term
     if term_filter:
@@ -484,21 +493,21 @@ def bookings_list(request):
 
     # Search for student name
     if student_search:
-        bookings = bookings.filter(student_full_name__icontains=student_search)
+        bookings = bookings.filter(student_name__icontains=student_search)
 
     # Search for tutor name
     if tutor_search:
-        bookings = bookings.filter(tutor_full_name__icontains=tutor_search)
+        bookings = bookings.filter(tutor_name__icontains=tutor_search)
 
     # Order by student or tutor name
     if order_by == 'student_asc':
-        bookings = bookings.order_by('student_full_name')
+        bookings = bookings.order_by('student_name')
     elif order_by == 'student_desc':
-        bookings = bookings.order_by('-student_full_name')
+        bookings = bookings.order_by('-student_name')
     elif order_by == 'tutor_asc':
-        bookings = bookings.order_by('tutor_full_name')
+        bookings = bookings.order_by('tutor_name')
     elif order_by == 'tutor_desc':
-        bookings = bookings.order_by('-tutor_full_name')
+        bookings = bookings.order_by('-tutor_name')
 
     return render(request, 'bookings/booking_list.html', {
         'bookings': bookings,

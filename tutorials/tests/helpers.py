@@ -33,6 +33,8 @@ class MenuTesterMixin(AssertHTMLMixin):
         reverse('booking_list') # Bookings
     ]   
 
+        for url in self.menu_urls:
+            self.assertHTML(response, f'a[href="{url}"]')
         for url in expected_links:
             with self.assertHTML(response, f'a[href="{url}"]'):
                 pass

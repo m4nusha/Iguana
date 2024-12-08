@@ -14,6 +14,13 @@ class LogInViewTestCase(TestCase, LogInTester, MenuTesterMixin):
     def setUp(self):
         self.url = reverse('log_in')
         self.user = User.objects.get(username='@johndoe')
+        self.non_admin_user = User.objects.create_user(
+            username='@janedoe', 
+            password='Password123', 
+            first_name='Jane', 
+            last_name='Doe',
+            user_type='tutor'
+        )
 
     def test_log_in_url(self):
         self.assertEqual(self.url,'/log_in/')
@@ -141,3 +148,38 @@ class LogInViewTestCase(TestCase, LogInTester, MenuTesterMixin):
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.ERROR)
+
+    def test_successful_log_in_as_admin(self):
+        form_input = {'username': '@johndoe', 'password': 'Password123'}
+        response = self.client.post(self.url, form_input, follow=True)
+        self.assertTrue(self._is_logged_in())
+        response_url = reverse('dashboard')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'dashboard.html')
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 0)
+        self.assert_menu(response)
+
+    def test_unsuccessful_log_in_as_non_admin(self):
+        form_input = {'username': '@janedoe', 'password': 'Password123'}
+        response = self.client.post(self.url, form_input)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'log_in.html')
+        form = response.context['form']
+        self.assertTrue(isinstance(form, LogInForm))
+        self.assertFalse(form.is_bound)
+        self.assertFalse(self._is_logged_in())
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.ERROR)
+        self.assertEqual(str(messages_list[0]), "Access denied: Only Admin users are allowed to log in.")
+
+    def test_non_admin_login_redirect(self):
+        form_input = {'username': '@janedoe', 'password': 'Password123'}
+        response = self.client.post(self.url, form_input, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'log_in.html')
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.ERROR)
+        self.assertEqual(str(messages_list[0]), "Access denied: Only Admin users are allowed to log in.")
