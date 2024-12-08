@@ -119,6 +119,56 @@ class Student(models.Model):
         allocation_status = 'allocated' if self.allocated else 'not allocated'
         return f"{self.name} ({self.username.username}) is {allocation_status} and has payment status {self.payment}."
 
+
+class StudentRequest(models.Model):
+    # Types of requests
+    REQUEST_TYPE_CHOICES = [
+        ('profile_update', 'Profile Update'),
+        ('password_reset', 'Password Reset'),
+        ('course_enrollment', 'Course Enrollment'),
+        ('tutor_assignment', 'Tutor Assignment'),
+        ('session_schedule', 'Session Scheduling'),
+        ('payment_issue', 'Payment Issue'),
+        ('technical_support', 'Technical Support'),
+        ('feedback_complaint', 'Feedback/Complaint'),
+        ('custom_request', 'Custom Request'),
+    ]
+
+    # Priority levels
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+    ]
+
+    name = models.CharField(max_length=255)
+    username = models.ForeignKey(User, on_delete=models.CASCADE, related_name='student_requests')
+    request_type = models.CharField(max_length=50, choices=REQUEST_TYPE_CHOICES)
+    description = models.TextField()  # Detailed description of the request
+    status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('in_progress', 'In Progress'), ('resolved', 'Resolved')],
+        default='pending',
+    )
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='low')
+
+    # Automatically adds the current timestamp when the record is created
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.username.username} - {self.get_request_type_display()}"
+
+    def show_details(self):
+        return (
+            f"Student: {self.username.username}\n"
+            f"Request Type: {self.get_request_type_display()}\n"
+            f"Description: {self.description}\n"
+            f"Status: {self.get_status_display()}\n"
+            f"Priority: {self.get_priority_display()}\n"
+            f"Created At: {self.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
+        )
+
+
 class Tutor(models.Model):
     SUBJECT_CHOICES = [
         ('Python', 'Python'),

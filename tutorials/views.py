@@ -13,11 +13,13 @@ from tutorials.helpers import login_prohibited
 from .models import Booking, Session, User
 from .forms import BookingForm, SessionForm, CreateUserForm, UserForm
 from django.shortcuts import get_object_or_404
-from django.db.models import Value, F, Func, CharField, Q
+from django.db.models import Value, F, CharField
+#from django.db.models import Value
+from django.db.models.functions import Concat
 
 
-from .models import Student
-from .forms import StudentForm
+from .models import Student,StudentRequest
+from .forms import StudentForm,StudentRequestForm
 from django.http import HttpResponse, HttpResponseRedirect,Http404
 
 from .models import Tutor
@@ -246,7 +248,7 @@ def create_user(request):
         form = UserForm()
     return render(request, 'create_user.html', {'form': form})
 
-def students(request):
+def students_list(request):
     """Display a list of all students with filtering, sorting, and searching options."""
     # Get filter and search parameters from the request
     allocated = request.GET.get('allocated')  # Filter for allocation status
@@ -285,7 +287,7 @@ def students(request):
         'search_query': search_query,
         'payment_choices': Student.PAYMENT_CHOICES,  # Pass payment choices to the template
     }
-    return render(request, 'students.html', context)
+    return render(request, 'students_list.html', context)
 
 def show_student(request, student_id):
     """Display further info on a student"""
@@ -295,25 +297,6 @@ def show_student(request, student_id):
         raise Http404(f"Could not find a student with primary key {student_id}")
     else:
         return render(request, 'show_student.html', context)
-
-def create_student(request):
-    """Create a new student to the database"""
-    #check first if it's a post request
-    if request.method == "POST":
-        form = StudentForm(request.POST)
-        #then check if the data entered is valid
-        if form.is_valid():
-            try:
-                form.save()
-            except:
-                form.add_error(None, "It was not possible to save this student to the database,")
-            else:
-                path = reverse('students')     #go to  list of students
-                return HttpResponseRedirect(path)
-    else:
-        form = StudentForm()
-    return render(request, 'create_student.html', {'form':form})
-
 
 def update_student(request,student_id):
     try:
@@ -326,8 +309,8 @@ def update_student(request,student_id):
             if form.is_valid():
                 try:
                     form.save()
-                except:
-                    form.add_error(None, "It was not possible to save this student to the database,")
+                except Exception as e:
+                    form.add_error(None, f"It was not possible to save this student to the database, {e}")
                 else:
                     path = reverse('students')  # go to list of students
                     return HttpResponseRedirect(path)
@@ -351,7 +334,126 @@ def delete_student(request,student_id):
             # If request is GET, show confirmation page
         context = f'Are you sure you want to delete the following student: "{student.name}".'
         return render(request,'delete_student.html', {'context': context,'student':student})
-    
+
+def student_requests(request):
+    """
+    Display a list of all student requests with filtering, search, and sorting options.
+    """
+    # Get filter parameters from the query string
+    status_filter = request.GET.get('status', '')
+    priority_filter = request.GET.get('priority', '')
+    request_type_filter = request.GET.get('request_type', '')
+    search_query = request.GET.get('search', '')  # For search bar
+    order_by = request.GET.get('order_by', '')  # For sorting
+
+    # Fetch filtered requests
+    requests = StudentRequest.objects.all()
+
+    if status_filter:
+        requests = requests.filter(status=status_filter)
+    if priority_filter:
+        requests = requests.filter(priority=priority_filter)
+    if request_type_filter:
+        requests = requests.filter(request_type=request_type_filter)
+    if search_query:
+        requests = requests.filter(name__icontains=search_query)  # Case-insensitive search
+
+    # Apply sorting
+    if order_by == 'asc':
+        requests = requests.order_by('name')
+    elif order_by == 'desc':
+        requests = requests.order_by('-name')
+
+    # Pass filters and requests to the template
+    context = {
+        'requests': requests,
+        'status_filter': status_filter,
+        'priority_filter': priority_filter,
+        'request_type_filter': request_type_filter,
+        'search_query': search_query,
+        'order_by': order_by,
+        'statuses': [choice[0] for choice in StudentRequest._meta.get_field('status').choices],
+        'priorities': [choice[0] for choice in StudentRequest._meta.get_field('priority').choices],
+        'request_types': [choice[0] for choice in StudentRequest._meta.get_field('request_type').choices],
+    }
+    return render(request, 'student_requests.html', context)
+
+def show_request(request, request_id):
+    """
+    Display further information on a student request.
+    """
+    try:
+        context = {'student_request': StudentRequest.objects.get(id=request_id)}
+    except StudentRequest.DoesNotExist:
+        raise Http404(f"Could not find a request with primary key {request_id}")
+    else:
+        return render(request, 'show_request.html', context)
+
+
+def create_request(request):
+    """
+    Create a new student request and save it to the database.
+    """
+    if request.method == "POST":
+        form = StudentRequestForm(request.POST)
+        if form.is_valid():
+            try:
+                form.save()
+            except Exception as e:
+                form.add_error(None, "It was not possible to save this request to the database.")
+            else:
+                path = reverse('student_requests')
+                return HttpResponseRedirect(path)
+    else:
+        form = StudentRequestForm()
+
+    return render(request, 'create_request.html', {'form': form})
+
+
+def update_request(request, request_id):
+    """
+    Update an existing student request in the database.
+    """
+    try:
+        student_request = StudentRequest.objects.get(id=request_id)
+    except StudentRequest.DoesNotExist:
+        raise Http404(f"Could not find a request with primary key {request_id}")
+    else:
+        if request.method == "POST":
+            form = StudentRequestForm(request.POST, instance=student_request)
+            if form.is_valid():
+                try:
+                    form.save()  # Save the updated data to the database
+                except Exception as e:
+                    form.add_error(None, "It was not possible to save this request to the database.")
+                else:
+                    path = reverse('student_requests')  # Redirect to the list of requests
+                    return HttpResponseRedirect(path)
+        else:
+            form = StudentRequestForm(instance=student_request)
+
+        return render(request, 'update_request.html', {'form': form, 'student_request': student_request})
+
+
+def delete_request(request, request_id):
+    """
+    Delete a student request from the database.
+    """
+    try:
+        student_request = StudentRequest.objects.get(id=request_id)
+    except StudentRequest.DoesNotExist:
+        raise Http404(f"Could not find a request with primary key {request_id}")
+
+    if request.method == "POST":
+        # If the user confirmed deletion, delete the request and redirect
+        student_request.delete()
+        path = reverse('student_requests')  # Redirect to the list of requests
+        return HttpResponseRedirect(path)
+    else:
+        # If request is GET, show confirmation page
+        context = f'Are you sure you want to delete the following request: "{student_request}"?'
+        return render(request, 'delete_request.html', {'context': context, 'student_request': student_request})
+
 @login_required
 def bookings_list(request):
     """Display a list of all bookings with filtering, ordering, and searching options."""
@@ -361,10 +463,23 @@ def bookings_list(request):
     student_search = request.GET.get('student_search')  # Search for student name
     tutor_search = request.GET.get('tutor_search')  # Search for tutor name
 
-    # Annotate full_name for students and tutors
+    # Annotate full_name for students and tutors using Concat
     bookings = Booking.objects.annotate(
         student_name=F('student__name'),
         tutor_name=F('tutor__name')
+        # raghad's version if we need it
+        # student_full_name=Concat(
+        #     F('student__first_name'),
+        #     Value(' '),
+        #     F('student__last_name'),
+        #     output_field=CharField()
+        # ),
+        # tutor_full_name=Concat(
+        #     F('tutor__first_name'),
+        #     Value(' '),
+        #     F('tutor__last_name'),
+        #     output_field=CharField()
+        # )
     )
 
 
@@ -378,21 +493,21 @@ def bookings_list(request):
 
     # Search for student name
     if student_search:
-        bookings = bookings.filter(student_full_name__icontains=student_search)
+        bookings = bookings.filter(student_name__icontains=student_search)
 
     # Search for tutor name
     if tutor_search:
-        bookings = bookings.filter(tutor_full_name__icontains=tutor_search)
+        bookings = bookings.filter(tutor_name__icontains=tutor_search)
 
     # Order by student or tutor name
     if order_by == 'student_asc':
-        bookings = bookings.order_by('student_full_name')
+        bookings = bookings.order_by('student_name')
     elif order_by == 'student_desc':
-        bookings = bookings.order_by('-student_full_name')
+        bookings = bookings.order_by('-student_name')
     elif order_by == 'tutor_asc':
-        bookings = bookings.order_by('tutor_full_name')
+        bookings = bookings.order_by('tutor_name')
     elif order_by == 'tutor_desc':
-        bookings = bookings.order_by('-tutor_full_name')
+        bookings = bookings.order_by('-tutor_name')
 
     return render(request, 'bookings/booking_list.html', {
         'bookings': bookings,
@@ -404,7 +519,6 @@ def bookings_list(request):
         'student_search': student_search,
         'tutor_search': tutor_search,
     })
-
 
 # Create Booking
 def booking_create(request):
