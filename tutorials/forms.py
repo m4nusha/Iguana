@@ -258,6 +258,14 @@ class BookingForm(forms.ModelForm):
         model = Booking
         fields = ['term','lesson_type', 'student', 'tutor']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # student + tutor fields display only usernames
+        self.fields['student'].queryset = Student.objects.all()
+        self.fields['student'].label_from_instance = lambda obj: obj.username.username
+        self.fields['tutor'].queryset = Tutor.objects.all()
+        self.fields['tutor'].label_from_instance = lambda obj: obj.username.username
+
     def clean(self):
         cleaned_data = super().clean()
         term = cleaned_data.get('term')

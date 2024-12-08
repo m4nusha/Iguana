@@ -255,7 +255,7 @@ class Booking(models.Model):
 
     def __str__(self):
         """return a readable string representation of booking"""
-        return f'{self.term} | Student: {self.student.name} | Tutor: {self.tutor.name}'
+        return f'{self.term} | {self.lesson_type} | Student: {self.student.name} | Tutor: {self.tutor.name}'
     
 
 class Session(models.Model):
