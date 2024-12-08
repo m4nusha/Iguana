@@ -1,22 +1,33 @@
 from django.test import TestCase
 from django.urls import reverse
-from tutorials.models import Tutor
+from tutorials.models import Tutor, User, Subject
 
 class TutorsViewTestCase(TestCase):
     def setUp(self):
-        # Create some sample tutors
+        #create some sample tutors
+
+        self.user1 = User.objects.create(username="johndoe")
+        self.user2 = User.objects.create(username="janesmith")
+
+        self.subject1 = Subject.objects.create(name = "Python")
+        self.subject2 = Subject.objects.create(name = "Java")
+        self.subject3 = Subject.objects.create(name = "Go")
+
         self.tutor1 = Tutor.objects.create(
             name="John Doe",
-            username="johndoe",
+            username=self.user1,
             email="johndoe@example.com",
-            subject="Math"
+            rate=30.00
         )
+        self.tutor1.subjects.add(self.subject1, self.subject2)
+
         self.tutor2 = Tutor.objects.create(
             name="Jane Smith",
-            username="janesmith",
+            username=self.user2,
             email="janesmith@example.com",
-            subject="Physics"
+            rate=26.75
         )
+        self.tutor2.subjects.add(self.subject3)
         self.url = reverse('tutors')  # URL for the tutors view
 
     def test_tutors_url(self):

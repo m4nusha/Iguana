@@ -1,5 +1,5 @@
 from decimal import Decimal
-from django.core.validators import RegexValidator, MinValueValidator
+from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.forms import ValidationError
@@ -168,31 +168,18 @@ class StudentRequest(models.Model):
             f"Created At: {self.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
         )
 
+class Subject(models.Model):
+    name = models.CharField(max_length=100 ,unique = True)
+
+    def __str__(self):
+        return self.name
 
 class Tutor(models.Model):
-    SUBJECT_CHOICES = [
-        ('Python', 'Python'),
-        ('Java', 'Java'),
-        ('Javascript', 'Javascript'),
-        ('React', 'React'),
-        ('Ruby', 'Ruby'),
-        ('Go', 'Go'),
-        ('HTML/CSS', 'HTML/CSS'),
-        ('C', 'C'),
-        ('Scala', 'Scala'),
-
-    ]
-
-
     name = models.CharField(max_length=255)
     username = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tutors')
     email = models.EmailField(unique=True)
-    subject = models.CharField(
-        max_length=100,
-        choices=SUBJECT_CHOICES,
-        default='Python',
-    )
-    rate = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.00)], default=10.00)
+    subjects = models.ManyToManyField(Subject, related_name='tutors') #dynamic subjects
+    rate = models.DecimalField(max_digits=6, decimal_places=2, default=10.00)  
     
 
     def save(self, *args, **kwargs):

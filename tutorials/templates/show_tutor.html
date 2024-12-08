@@ -1,13 +1,26 @@
 
 <html>
 <head>
-    <title>Currently viewing:</title>
+    <title>Tutor Information</title>
 </head>
 <body>
-    <h1>Tutor Information</h1>
+    <h1>{{tutor.name}} - Details</h1>
+
     <p><strong>Name: </strong>{{tutor.name}}</p>
     <p><strong>Email: </strong> {{tutor.email}}</p>
-    <p><strong>About: </strong>{{tutor.description}}</p>
+    <p><strong>Subjects: </strong>
+    {% if subjects %}
+        <ul>
+            {% for subject in subjects %}
+                <li>{{subject.name}}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p> No subjects assigned. </p>
+    {% endif %}   
+    </p>
+
+    <p><strong>Rate: </strong> {{tutor.rate}}</p>
 
     <a href="{% url 'tutors' %}">Back to Tutors list</a>
 </body>

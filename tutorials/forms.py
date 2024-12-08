@@ -4,6 +4,8 @@ from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
 from .models import Student, StudentRequest
 from .models import Tutor
+from .models import Tutor, Subject
+from .models import User
 from .models import User, Booking, Session
 from django.core.exceptions import ValidationError
 
@@ -154,9 +156,16 @@ class CreateUserForm(forms.ModelForm):
 ############ my additions ##############
 class TutorForm(forms.ModelForm):
     """Form for creating and updating tutors."""
+
+    subjects = forms.ModelMultipleChoiceField(
+        queryset=Subject.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+
     class Meta:
         model = Tutor
-        fields = ['name', 'username', 'email', 'subject', 'rate']
+        fields = ['name', 'username', 'email','subjects', 'rate']
 
     def clean(self):
         cleaned_data = super().clean()

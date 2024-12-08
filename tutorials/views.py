@@ -22,7 +22,7 @@ from .models import Student,StudentRequest
 from .forms import StudentForm,StudentRequestForm
 from django.http import HttpResponse, HttpResponseRedirect,Http404
 
-from .models import Tutor
+from .models import Tutor, Subject
 from .forms import TutorForm
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from tutorials import views
@@ -258,7 +258,7 @@ def students_list(request):
 
     # Start with all students
     students = Student.objects.all()
-    populate()
+    #populate()
     # Apply filtering by allocated
     if allocated == 'true':
         students = students.filter(allocated=True)
@@ -652,64 +652,62 @@ from .models import Tutor
 
 def list_tutors(request):
     """Display a list of all tutors."""
-    subject = request.GET.get('subject')  # Get the subject filter
+    #!!!!!!
+    subject_filter = request.GET.get('subject')  # Get the subject filter
     order = request.GET.get('order')  # Get the order filter
     search_query = request.GET.get('search')  # Get the search query
-    populate()
-    # Filter tutors by subject if provided
-    if subject:
-        tutors = Tutor.objects.filter(subject=subject)
-    else:
-        tutors = Tutor.objects.all()
+    
+    tutors = Tutor.objects.all()
+    #populate()
 
-    # Filter tutors by name if search query is provided
+    #!!!!!
+    # Filter tutors by subject if provided
+    #if subject:
+        #tutors = Tutor.objects.filter(subject=subject)
+    #else:
+        #tutors = Tutor.objects.all()
+
+    #filter tutors by subject if provided
+    if subject_filter:
+        tutors = tutors.filter(subjects__name=subject_filter) #ManyToManyField filter
+
+    #filter tutors by name if search query is provided
     if search_query:
         tutors = tutors.filter(name__icontains=search_query)
 
-    # Order tutors by name if ordering is specified
+    #order tutors by name if ordering is specified
     if order == 'asc':  # A-Z
         tutors = tutors.order_by('name')
     elif order == 'desc':  # Z-A
         tutors = tutors.order_by('-name')
 
-    # Pass SUBJECT_CHOICES and order to the template
-    subject_choices = Tutor.SUBJECT_CHOICES
+    #get all subjects for the filter dropdown
+    all_subjects = Subject.objects.all()
 
     return render(request, 'list_tutors.html', {
         'tutors': tutors,
-        'subject_choices': subject_choices,
-        'current_order': order,  # Pass current order for UI feedback
-        'search_query': search_query,  # Pass search query for UI feedback
+        'subject_choices': all_subjects,
+        'current_order': order,  #pass current order for UI feedback
+        'search_query': search_query,  #pass search query for UI feedback
+        'current_subject': subject_filter, #pass the selected subject for UI feedback
     })
 
 
 def show_tutor(request, tutor_id):
-    """Display further info on a student"""
+    """Display further info on a tutor"""
+
     try:
-        context = {'tutor': Tutor.objects.get(id=tutor_id)}
+        tutor = Tutor.objects.get(id=tutor_id)
     except Tutor.DoesNotExist:
         raise Http404(f"Could not find a tutor with primary key {tutor_id}")
-    else:
-        return render(request, 'show_tutor.html', context)
+    
+    #pass tutor's subjects to the template
+    subjects = tutor.subjects.all()
 
-
-def create_tutor(request):
-    """Create a new tutor to the database"""
-    #Check first if it's a post request
-    if request.method == "POST":
-        form = TutorForm(request.POST)
-        #Then check if the data entered is valid
-        if form.is_valid():
-            try:
-                form.save()
-            except:
-                form.add_error(None, "It was not possible to save this tutor to the database,")
-            else:
-                path = reverse('tutors')     #Go to  list of tutors
-                return HttpResponseRedirect(path)
-    else:
-        form = TutorForm()
-    return render(request, 'create_tutor.html', {'form':form})
+    return render (request, 'show_tutor.html', {
+        'tutor': tutor,
+        'subjects': subjects
+    })
 
 
 def update_tutor(request,tutor_id):
