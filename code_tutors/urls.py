@@ -23,21 +23,14 @@ from tutorials.views import list_tutors, update_tutor, delete_tutor, show_tutor
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-<<<<<<< HEAD
     path('', views.home, name='home'),
     # Inside welcome page (root URL)
-=======
-    #path('', views.home, name='home'),
-    # Inside welcome page (root URL)
-    path('', views.inside_welcome, name='inside_welcome'),
->>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
     path('dashboard/', views.dashboard, name='dashboard'),
-    #path('log_in/', views.LogInView.as_view(), name='log_in'),
-    #path('log_out/', views.log_out, name='log_out'),
-    #path('password/', views.PasswordView.as_view(), name='password'),
+    path('log_in/', views.LogInView.as_view(), name='log_in'),
+    path('log_out/', views.log_out, name='log_out'),
+    path('password/', views.PasswordView.as_view(), name='password'),
     path('profile/', views.ProfileUpdateView.as_view(), name='profile'),
     path('sign_up/', views.SignUpView.as_view(), name='sign_up'),
-<<<<<<< HEAD
 
     #tutor add-ons
     path('tutors/',views.list_tutors, name='tutors'),
@@ -64,13 +57,6 @@ urlpatterns = [
     path('users/<int:user_id>/edit/', views.edit_user, name='edit_users_type'),
     #path('users/delete/<int:user_id>/', views.delete_user, name='delete_user'),
 
-=======
-    path('students/',views.students, name='students'),
-    path('students/<int:student_id>',views.show_student, name='show_student'),
-    path('create_student/',views.create_student, name='create_student'),
-    path('update_student/<int:student_id>', views.update_student, name='update_student'),
-    path('delete_student/<int:student_id>', views.delete_student, name='delete_student'),
->>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
     #Booking add-ons
     # List all bookings (Page 1)
     path('bookings/', views.bookings_list, name='booking_list'),
@@ -82,10 +68,6 @@ urlpatterns = [
     path('bookings/delete/<int:pk>/', views.booking_delete, name='booking_delete'),
 
     path('bookings/create/', views.booking_create, name='booking_create'),  # Create Booking
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ab3f7c1 (Added the functionality of all the other pages)
     path('bookings/show/<int:pk>/', views.booking_detail, name='booking_detail'),  # Booking details
     path('bookings/<int:booking_id>/sessions/', views.booking_show, name='session_list'),
     path('sessions/<int:pk>/', views.session_show, name='session_show'),
@@ -94,13 +76,6 @@ urlpatterns = [
 
 
     path('bookings/<int:booking_id>/sessions/create/', views.session_create, name='session_create'),
-<<<<<<< HEAD
-=======
-    path('bookings/show/<int:pk>/', views.booking_show, name='booking_show'),  # Show Booking
-    
->>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
-=======
->>>>>>> ab3f7c1 (Added the functionality of all the other pages)
 ]
 
 
