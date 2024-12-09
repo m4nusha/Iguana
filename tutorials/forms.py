@@ -2,9 +2,12 @@ from datetime import date, datetime, timedelta
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from .models import Student, StudentRequest, Tutor, User, Booking, Session
+from .models import Student, StudentRequest
+from .models import Tutor
+from .models import Tutor, Subject
+from .models import User
+from .models import User, Booking, Session
 from django.core.exceptions import ValidationError
-
 
 
 class LogInForm(forms.Form):
@@ -39,7 +42,6 @@ class UserForm(forms.ModelForm):
 
         model = User
         fields = ['first_name', 'last_name', 'username', 'email', 'user_type']
-
 
 
 class NewPasswordMixin(forms.Form):
@@ -366,106 +368,6 @@ class UpdateSessionForm(forms.ModelForm):
     class Meta:
         model = Session
         fields = ['session_date', 'session_time', 'duration', 'venue', 'payment_status']
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        session_date = cleaned_data.get('session_date')
-        session_time = cleaned_data.get('session_time')
-        booking = cleaned_data.get('booking')
-
-        if session_date and session_time:
-            if Session.objects.filter(booking=booking, session_date=session_date, session_time=session_time).exists():
-                raise forms.ValidationError("A session with the same booking, date, and time already exists.")
-        if session_date and session_date < date.today():
-            self.add_error('session_date', "Session date cannot be in the past.")
-        
-        return cleaned_data
-        fields = ['term', 'student', 'tutor']
-
-    def clean(self):
-        cleaned_data = super().clean()
-        term = cleaned_data.get('term')
-        student = cleaned_data.get('student')
-        tutor = cleaned_data.get('tutor')
-
-        if student == tutor:
-            self.add_error('tutor', 'A student cannot book themselves as a tutor.')
-            self.add_error('student', 'A student cannot book themselves as a tutor.')
-        if student and not User.objects.filter(id=student.id).exists():
-            self.add_error('student', 'Student does not exist.')
-        if tutor and not User.objects.filter(id=tutor.id).exists():
-            self.add_error('tutor', 'Tutor does not exist.')
-        if Booking.objects.filter(term=term, student=student, tutor=tutor).exists():
-            raise ValidationError('A booking with the same details already exists.')
-        
-        return cleaned_data
-    
-
-class UpdateBookingForm(forms.ModelForm):
-    """Form to update an existing booking."""
-
-    class Meta:
-        model = Booking
-        fields = ['term', 'student', 'tutor']
-
-    def clean(self):
-        cleaned_data = super().clean()
-        term = cleaned_data.get('term')
-        student = cleaned_data.get('student')
-        tutor = cleaned_data.get('tutor')
-
-        if student is None:
-            raise ValidationError("Student must be selected.")
-        if tutor is None:
-            raise ValidationError("Tutor must be selected.")
-        if not User.objects.filter(id=student.id).exists():
-            self.add_error('student', 'The selected student does not exist.')
-        if not User.objects.filter(id=tutor.id).exists():
-            self.add_error('tutor', 'The selected tutor does not exist.')
-        if student == tutor:
-            self.add_error('tutor', 'The student and tutor cannot be the same person.')
-        if Booking.objects.filter(term=term, student=student, tutor=tutor).exists():
-            raise ValidationError('A booking with the same details already exists.')
-
-        return cleaned_data
-
-
-class SessionForm(forms.ModelForm):
-
-    class Meta:
-        model = Session
-        unique_together = ('booking', 'session_date', 'session_time')
-        fields = ['booking', 'session_date', 'session_time', 'duration', 'lesson_type', 'venue', 'amount', 'payment_status']
-
-    def clean(self):
-        cleaned_data = super().clean()
-        booking = cleaned_data.get('booking')
-        session_date = cleaned_data.get('session_date')
-        session_time = cleaned_data.get('session_time')
-
-        if booking and session_date and session_time:
-            if Session.objects.filter(
-                booking=booking, session_date=session_date, session_time=session_time
-            ).exists():
-                raise forms.ValidationError(
-                    {"__all__": "A session with this booking and date already exists."}
-                )
-        return cleaned_data
-    
-    def clean_session_date(self):
-        session_date = self.cleaned_data.get('session_date')
-
-        if session_date and session_date < datetime.now().date():
-            raise forms.ValidationError("The session date cannot be in the past.")
-        
-        return session_date
-
-
-class UpdateSessionForm(forms.ModelForm):
-
-    class Meta:
-        model = Session
-        fields = ['session_date', 'session_time', 'duration', 'lesson_type', 'venue', 'amount', 'payment_status']
     
     def clean(self):
         cleaned_data = super().clean()
