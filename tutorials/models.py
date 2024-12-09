@@ -29,6 +29,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, blank=False, null=False)
     user_type = models.CharField(max_length=10, choices=USER_TYPES, default='student')
 
+
     class Meta:
         """Model options."""
 
@@ -223,6 +224,7 @@ class Booking(models.Model):
     student = models.ForeignKey(Student, related_name='student_bookings', on_delete=models.CASCADE)
     tutor = models.ForeignKey(Tutor, related_name='tutor_bookings', on_delete=models.CASCADE)
 
+
     class Meta:
         ordering = ['term', 'lesson_type', 'student', 'tutor']
         unique_together = ['term', 'lesson_type', 'student', 'tutor']
@@ -341,3 +343,4 @@ class Session(models.Model):
     @property
     def total_amount(self):
         return self.calculate_total_amount()
+
