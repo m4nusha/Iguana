@@ -1,16 +1,11 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
 from .models import Student, StudentRequest
-from .models import Tutor
 from .models import Tutor, Subject
-from .models import User
 from .models import User, Booking, Session
 from django.core.exceptions import ValidationError
-from .models import User, Booking
-
-from .models import Student
 
 
 class LogInForm(forms.Form):
@@ -299,13 +294,13 @@ class BookingForm(forms.ModelForm):
         student = cleaned_data.get('student')
         tutor = cleaned_data.get('tutor')
 
+        if student and not Student.objects.filter(id=student.id).exists():
+            self.add_error('student', 'Student does not exist.')
+        if tutor and not Tutor.objects.filter(id=tutor.id).exists():
+            self.add_error('tutor', 'Tutor does not exist.')
         if student == tutor:
             self.add_error('tutor', 'A student cannot book themselves as a tutor.')
             self.add_error('student', 'A student cannot book themselves as a tutor.')
-        if student and not User.objects.filter(id=student.id).exists():
-            self.add_error('student', 'Student does not exist.')
-        if tutor and not User.objects.filter(id=tutor.id).exists():
-            self.add_error('tutor', 'Tutor does not exist.')
         if Booking.objects.filter(term=term, lesson_type=lesson_type, student=student, tutor=tutor).exists():
             raise ValidationError('A booking with the same details already exists.')
         
@@ -330,9 +325,9 @@ class UpdateBookingForm(forms.ModelForm):
             raise ValidationError("Student must be selected.")
         if tutor is None:
             raise ValidationError("Tutor must be selected.")
-        if not User.objects.filter(id=student.id).exists():
+        if not Student.objects.filter(id=student.id).exists():
             self.add_error('student', 'The selected student does not exist.')
-        if not User.objects.filter(id=tutor.id).exists():
+        if not Tutor.objects.filter(id=tutor.id).exists():
             self.add_error('tutor', 'The selected tutor does not exist.')
         if student == tutor:
             self.add_error('tutor', 'The student and tutor cannot be the same person.')
@@ -399,6 +394,5 @@ class UpdateSessionForm(forms.ModelForm):
             self.add_error('session_date', "Session date cannot be in the past.")
         
         return cleaned_data
-
 
 
