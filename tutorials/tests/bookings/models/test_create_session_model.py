@@ -1,13 +1,15 @@
 from django.forms import ValidationError
 from django.test import TestCase
-from tutorials.models import Booking, User, Session
+from tutorials.models import Booking, Student, Tutor, User, Session
 from datetime import timedelta, date, time
 
 class CreateSessionModelTest(TestCase):
     """unit tests for the Session model"""
     def setUp(self):
-        self.student = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
-        self.tutor = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
+        student_user = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
+        tutor_user = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
+        self.student = Student.objects.create(username=student_user)
+        self.tutor = Tutor.objects.create(username=tutor_user)
         self.booking = Booking.objects.create(term="Term1", student=self.student, tutor=self.tutor)
 
     def test_create_session_with_valid_data(self):

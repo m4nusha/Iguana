@@ -228,15 +228,15 @@ class Booking(models.Model):
         ordering = ['term', 'lesson_type', 'student', 'tutor']
         unique_together = ['term', 'lesson_type', 'student', 'tutor']
 
-    def clean(self):
+    def clean(self):        
         if not self.student_id or not self.tutor_id:
             raise ValidationError("Both student and tutor must be assigned.")
-        if self.student_id == self.tutor_id:
-            raise ValidationError("A student cannot book themselves as a tutor.")
         if not Student.objects.filter(id=self.student_id).exists():
             raise ValidationError(f"Student with ID {self.student_id} does not exist.")
         if not Tutor.objects.filter(id=self.tutor_id).exists():
             raise ValidationError(f"Tutor with ID {self.tutor_id} does not exist.")
+        if self.student_id == self.tutor_id:
+            raise ValidationError("A student cannot book themselves as a tutor.")
         if Booking.objects.filter(term=self.term,lesson_type=self.lesson_type, student_id=self.student_id, tutor_id=self.tutor_id).exists():
             raise ValidationError('A booking with the same details already exists.')
 
