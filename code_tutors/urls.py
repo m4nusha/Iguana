@@ -83,6 +83,9 @@ urlpatterns = [
 
     path('bookings/create/', views.booking_create, name='booking_create'),  # Create Booking
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ab3f7c1 (Added the functionality of all the other pages)
     path('bookings/show/<int:pk>/', views.booking_detail, name='booking_detail'),  # Booking details
     path('bookings/<int:booking_id>/sessions/', views.booking_show, name='session_list'),
     path('sessions/<int:pk>/', views.session_show, name='session_show'),
@@ -91,10 +94,13 @@ urlpatterns = [
 
 
     path('bookings/<int:booking_id>/sessions/create/', views.session_create, name='session_create'),
+<<<<<<< HEAD
 =======
     path('bookings/show/<int:pk>/', views.booking_show, name='booking_show'),  # Show Booking
     
 >>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
+=======
+>>>>>>> ab3f7c1 (Added the functionality of all the other pages)
 ]
 
 

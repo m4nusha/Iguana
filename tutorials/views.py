@@ -11,6 +11,7 @@ from django.urls import reverse, reverse_lazy
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
 <<<<<<< HEAD
+<<<<<<< HEAD
 from .models import Booking, Session, User
 from .forms import BookingForm, SessionForm, CreateUserForm, UserForm
 from django.shortcuts import get_object_or_404
@@ -20,6 +21,10 @@ from django.db.models.functions import Concat
 =======
 from .models import Booking
 from .forms import BookingForm
+=======
+from .models import Booking, Session
+from .forms import BookingForm, SessionForm
+>>>>>>> ab3f7c1 (Added the functionality of all the other pages)
 from django.shortcuts import get_object_or_404
 
 >>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
@@ -561,12 +566,6 @@ def booking_create(request):
 =======
     return render(request, 'myTests/booking_create.html', {'form': form})
 
-# Show Booking (Detail View)
-def booking_show(request, pk):
-    """Show details of a specific booking."""
-    booking = get_object_or_404(Booking, pk=pk)
-    return render(request, 'myTests/booking_show.html', {'booking': booking})
-
 #@login_required
 >>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
 def booking_update(request, pk):
@@ -795,4 +794,57 @@ def delete_tutor(request,tutor_id):
 def inside_welcome(request):
     """Render the inside welcome page."""
     return render(request, 'myTests/inside_welcome.html')
+<<<<<<< HEAD
 >>>>>>> d49b60a (Created a temp main page, added the first bookings functionality)
+=======
+
+def booking_detail(request, pk):
+    """Show details of a specific booking."""
+    booking = get_object_or_404(Booking, pk=pk)
+    return render(request, 'myTests/booking_show.html', {'booking': booking})
+
+def booking_show(request, booking_id):
+    """List all sessions for a specific booking."""
+    booking = get_object_or_404(Booking, id=booking_id)
+    sessions = booking.sessions.all()
+    return render(request, 'myTests/booking_show.html', {'booking': booking, 'sessions': sessions})
+
+def session_create(request, booking_id):
+    """Create a new session for a specific booking."""
+    booking = get_object_or_404(Booking, id=booking_id)
+    if request.method == 'POST':
+        form = SessionForm(request.POST)
+        if form.is_valid():
+            new_session = form.save(commit=False)
+            new_session.booking = booking
+            new_session.save()
+            return redirect('session_list', booking_id=booking.id)
+    else:
+        form = SessionForm()
+    return render(request, 'myTests/session_create.html', {'form': form, 'booking': booking})
+
+def session_show(request, pk):
+    """Show details of a specific session."""
+    session = get_object_or_404(Session, pk=pk)
+    return render(request, 'myTests/session_show.html', {'session': session})
+
+class SessionUpdateView(UpdateView):
+    """Update a specific session."""
+    model = Session
+    fields = ['session_date', 'session_time', 'duration', 'lesson_type', 'venue', 'amount', 'payment_status']
+    template_name = 'myTests/session_update.html'
+
+    def get_success_url(self):
+        # Use the booking ID of the related session
+        return reverse_lazy('session_list', kwargs={'booking_id': self.object.booking.id})
+
+
+class SessionDeleteView(DeleteView):
+    """Delete a specific session."""
+    model = Session
+    template_name = 'myTests/session_delete.html'
+
+    def get_success_url(self):
+        # Use the booking ID of the related session
+        return reverse_lazy('session_list', kwargs={'booking_id': self.object.booking.id})
+>>>>>>> ab3f7c1 (Added the functionality of all the other pages)
