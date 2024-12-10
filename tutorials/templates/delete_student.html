@@ -1,14 +1,21 @@
-<html>
-<head>
-    <title>Delete Student</title>
-</head>
-<body>
-    <h1>Delete Student</h1>
-    <p>{{ context }}</p>
-    <form action="{% url 'delete_student' student.id %}" method="post">
-        {% csrf_token %}
-        <input type="submit" value="Confirm">
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm p-4">
+    <h1 class="text-danger mb-4">Delete Student</h1>
+    <p class="mb-4 text-warning">
+      {{ context }}
+    </p>
+    <form action="{% url 'delete_student' student.id %}" method="post" class="mb-3">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash"></i> Confirm Delete
+      </button>
+      <a href="{% url 'students' %}" class="btn btn-secondary ms-2">
+        <i class="bi bi-arrow-left"></i> Cancel
+      </a>
     </form>
-    <a href="{% url 'students' %}">Cancel</a>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}
