@@ -1,15 +1,21 @@
 from django.test import TestCase
 from django.urls import reverse
-from tutorials.models import Tutor
+from tutorials.models import Tutor, User, Subject
 
 class DeleteTutorTestCase(TestCase):
     def setUp(self):
+        self.user = User.objects.create(username="janedoe")
+
+        self.subject1 = Subject.objects.create(name = "Python")
+        self.subject2 = Subject.objects.create(name = "Java")
+
         self.tutor = Tutor.objects.create(
             name="Doe, J.",
             username="janedoe",
             email="janedoe@gmail.com",
-            subject="Math"
+            rate = 25.50
         )
+        self.tutor.subjects.add(self.subject1, self.subject2)
         self.url = reverse('delete_tutor', kwargs={'tutor_id': self.tutor.id})
 
     def test_delete_tutor_url(self):

@@ -86,7 +86,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
                 ('email', models.EmailField(max_length=254, unique=True)),
-                ('subject', models.CharField(choices=[('Python', 'Python'), ('Java', 'Java'), ('Javascript', 'Javascript'), ('React', 'React'), ('Ruby', 'Ruby'), ('Go', 'Go'), ('HTML/CSS', 'HTML/CSS'), ('C', 'C'), ('Scala', 'Scala')], default='Python', max_length=100)),
+                ('subjects', models.CharField(choices=[('Python', 'Python'), ('Java', 'Java'), ('Javascript', 'Javascript'), ('React', 'React'), ('Ruby', 'Ruby'), ('Go', 'Go'), ('HTML/CSS', 'HTML/CSS'), ('C', 'C'), ('Scala', 'Scala')], default='Python', max_length=100)),
                 ('rate', models.DecimalField(decimal_places=2, default=10.0, max_digits=10, validators=[django.core.validators.MinValueValidator(0.0)])),
                 ('username', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tutors', to=settings.AUTH_USER_MODEL)),
             ],
@@ -106,4 +106,22 @@ class Migration(migrations.Migration):
                 'constraints': [models.UniqueConstraint(fields=('booking', 'session_date', 'session_time'), name='unique_booking_session_datetime')],
             },
         ),
+
+
+
+#     def add_predefined_subjects(apps, schema_editor):
+#         Subject = apps.get_model('tutorials', 'Subject')
+#         subjects = ['Python', 'Java', 'JavaScript', 'React', 'Ruby', 'Go', 'HTML/CSS', 'C', 'Scala']
+#         for name in subjects:
+#             Subject.objects.get_or_create(name=name)
+
+# class Migration(migrations.Migration):
+#     dependencies = [
+#         ('tutorials', '0001_initial'),
+#     ]
+
+#     operations = [
+#         migrations.RunPython(add_predefined_subjects),
+#     ]
+
     ]

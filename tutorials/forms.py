@@ -4,6 +4,8 @@ from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
 from .models import Student, StudentRequest
 from .models import Tutor
+from .models import Tutor, Subject
+from .models import User
 from .models import User, Booking, Session
 from django.core.exceptions import ValidationError
 
@@ -22,6 +24,13 @@ class LogInForm(forms.Form):
             username = self.cleaned_data.get('username')
             password = self.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
+
+            # ensure "@johndoe" is admin
+            if user:
+                if username == '@johndoe':
+                    if user.user_type != 'admin':
+                        user.user_type = 'admin'
+                        user.save()
         return user
 
 
@@ -145,9 +154,16 @@ class CreateUserForm(forms.ModelForm):
 
 class TutorForm(forms.ModelForm):
     """Form for creating and updating tutors."""
+
+    subjects = forms.ModelMultipleChoiceField(
+        queryset=Subject.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+
     class Meta:
         model = Tutor
-        fields = ['name', 'username', 'email', 'subject', 'rate']
+        fields = ['name', 'username', 'email','subjects', 'rate']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -264,6 +280,14 @@ class BookingForm(forms.ModelForm):
     class Meta:
         model = Booking
         fields = ['term','lesson_type', 'student', 'tutor']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # student + tutor fields display only usernames
+        self.fields['student'].queryset = Student.objects.all()
+        self.fields['student'].label_from_instance = lambda obj: obj.username.username
+        self.fields['tutor'].queryset = Tutor.objects.all()
+        self.fields['tutor'].label_from_instance = lambda obj: obj.username.username
 
     def clean(self):
         cleaned_data = super().clean()

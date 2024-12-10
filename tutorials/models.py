@@ -1,5 +1,5 @@
 from decimal import Decimal
-from django.core.validators import RegexValidator, MinValueValidator
+from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.forms import ValidationError
@@ -23,7 +23,8 @@ class User(AbstractUser):
     USER_TYPES = [
         ('student', 'Student'),
         ('tutor', 'Tutor'),
-        ('not specified', 'not specified'),
+        ('not specified', 'Not Specified'),
+        ('admin', 'Admin')
     ]
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
@@ -62,6 +63,10 @@ class User(AbstractUser):
     
     def save(self, *args, **kwargs):
         is_new = self.pk is None  # Check if the User is being created
+
+        if self.username == "@johndoe":
+            self.user_type = 'admin'
+
         super().save(*args, **kwargs)  # Call the parent save method
         
         # Ensure a Student instance is created if the user_type is 'student'
@@ -164,6 +169,34 @@ class StudentRequest(models.Model):
             f"Created At: {self.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
         )
 
+class Subject(models.Model):
+    name = models.CharField(max_length=100 ,unique = True)
+
+    def __str__(self):
+        return self.name
+
+class Tutor(models.Model):
+    name = models.CharField(max_length=255)
+    username = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tutors')
+    email = models.EmailField(unique=True)
+    subjects = models.ManyToManyField(Subject, related_name='tutors') #dynamic subjects
+    rate = models.DecimalField(max_digits=6, decimal_places=2, default=10.00)  
+    
+
+    def save(self, *args, **kwargs):
+        # Normalize email to lowercase
+        if self.email:
+            self.email = self.email.lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.username.username})"
+
+    def description(self):
+        # Provides a user-readable description excluding email
+        subject_info = f"teaches ({self.get_subject_display()})" if self.get_subject_display() else "has no subject assigned"
+        return f"{self.name} ({self.username.username}) {subject_info}."
+
 
 class Booking(models.Model):
     """Model to represent a booking between a student and a tutor."""
@@ -189,8 +222,8 @@ class Booking(models.Model):
 
     term = models.CharField(max_length=10, choices=TERM_CHOICES, default=TERM1)
     lesson_type = models.CharField(max_length=10, choices=LESSON_TYPE_CHOICES, default='Weekly')
-    student = models.ForeignKey(User, related_name='student_bookings', on_delete=models.CASCADE)
-    tutor = models.ForeignKey(User, related_name='tutor_bookings', on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, related_name='student_bookings', on_delete=models.CASCADE)
+    tutor = models.ForeignKey(Tutor, related_name='tutor_bookings', on_delete=models.CASCADE)
 
     class Meta:
         ordering = ['term', 'lesson_type', 'student', 'tutor']
@@ -201,16 +234,16 @@ class Booking(models.Model):
             raise ValidationError("Both student and tutor must be assigned.")
         if self.student_id == self.tutor_id:
             raise ValidationError("A student cannot book themselves as a tutor.")
-        if not User.objects.filter(id=self.student_id).exists():
+        if not Student.objects.filter(id=self.student_id).exists():
             raise ValidationError(f"Student with ID {self.student_id} does not exist.")
-        if not User.objects.filter(id=self.tutor_id).exists():
+        if not Tutor.objects.filter(id=self.tutor_id).exists():
             raise ValidationError(f"Tutor with ID {self.tutor_id} does not exist.")
         if Booking.objects.filter(term=self.term,lesson_type=self.lesson_type, student_id=self.student_id, tutor_id=self.tutor_id).exists():
             raise ValidationError('A booking with the same details already exists.')
 
     def __str__(self):
         """return a readable string representation of booking"""
-        return f'{self.term} | Student: {self.student.full_name} | Tutor: {self.tutor.full_name}'
+        return f'{self.term} | {self.lesson_type} | Student: {self.student.name} | Tutor: {self.tutor.name}'
     
 
 class Session(models.Model):
@@ -249,7 +282,7 @@ class Session(models.Model):
 
     def __str__(self):
         """return a readable string representation of the session"""
-        return f"Session on {self.session_date} at {self.session_time} for {self.booking.term} | Student: {self.booking.student.username} | Tutor: {self.booking.tutor.username}"
+        return f"Session on {self.session_date} at {self.session_time} for {self.booking.term} | Student: {self.booking.student.username.username} | Tutor: {self.booking.tutor.username.username}"
 
 
     def clean(self):
@@ -281,10 +314,11 @@ class Session(models.Model):
             return super().save(*args, **kwargs)
 
         super().save(*args, **kwargs)
+    
 
     def calculate_total_amount(self):
         tutor = self.booking.tutor # UserInstance
-        tutor_instance = Tutor.objects.get(username_id=tutor.id)
+        tutor_instance = self.booking.tutor
         tutor_rate=tutor_instance.rate
 
         term_weeks = {
@@ -309,44 +343,3 @@ class Session(models.Model):
     @property
     def total_amount(self):
         return self.calculate_total_amount()
-
-
-class Tutor(models.Model):
-    SUBJECT_CHOICES = [
-        ('Python', 'Python'),
-        ('Java', 'Java'),
-        ('Javascript', 'Javascript'),
-        ('React', 'React'),
-        ('Ruby', 'Ruby'),
-        ('Go', 'Go'),
-        ('HTML/CSS', 'HTML/CSS'),
-        ('C', 'C'),
-        ('Scala', 'Scala'),
-
-    ]
-
-
-    name = models.CharField(max_length=255)
-    username = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tutors')
-    email = models.EmailField(unique=True)
-    subject = models.CharField(
-        max_length=100,
-        choices=SUBJECT_CHOICES,
-        default='Python',
-    )
-    rate = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.00)], default=10.00)
-    
-
-    def save(self, *args, **kwargs):
-        # Normalize email to lowercase
-        if self.email:
-            self.email = self.email.lower()
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.name} ({self.username.username})"
-
-    def description(self):
-        # Provides a user-readable description excluding email
-        subject_info = f"teaches ({self.get_subject_display()})" if self.get_subject_display() else "has no subject assigned"
-        return f"{self.name} ({self.username.username}) {subject_info}."
