@@ -6,8 +6,8 @@ class ShowStudentTestCase(TestCase):
     def setUp(self):
         # Create a User instance with user_type='student'
         self.user = User.objects.create_user(
-            username="@johndoe",
-            email="johndoe@example.com",
+            username="@janedoe",
+            email="janedoe@example.com",
             password="password123",
             user_type="student"
         )
@@ -16,7 +16,7 @@ class ShowStudentTestCase(TestCase):
         self.student = Student.objects.get(username=self.user)
 
         # Update additional fields for the Student instance
-        self.student.name = "John Doe"
+        self.student.name = "Jane Doe"
         self.student.allocated = True
         self.student.payment = "Successful"
         self.student.save()

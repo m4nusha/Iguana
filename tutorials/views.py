@@ -316,7 +316,32 @@ def update_student(request,student_id):
         else:
             form = StudentForm(instance=student)
         return render(request,'update_student.html', {'form':form, 'student':student})
+"""
 
+def update_student(request, student_id):
+    try:
+        student = Student.objects.get(id=student_id)
+    except Student.DoesNotExist:
+        raise Http404(f"Could not find a student with primary key {student_id}")
+    else:
+        if request.method == "POST":
+            form = StudentForm(request.POST, instance=student)
+
+            if form.is_valid():
+                form.save()
+                path = reverse('students')  # go to list of students
+                return HttpResponseRedirect(path)
+            else:
+                # If form is not valid, print out form errors for debugging
+                print(form.errors)
+                # Optionally, you can return the form with error messages for the user
+                return render(request, 'update_student.html', {'form': form, 'student': student})
+
+        else:
+            form = StudentForm(instance=student)
+
+        return render(request, 'update_student.html', {'form': form, 'student': student})
+"""
 
 def delete_student(request,student_id):
     try:

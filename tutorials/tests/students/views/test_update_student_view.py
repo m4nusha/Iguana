@@ -13,24 +13,24 @@ class UpdateStudentTestCase(TestCase):
     def setUp(self):
         # Create a User instance
         self.user = User.objects.create_user(
-            username="@johndoe",
-            email="johndoe@example.com",
+            username="@janedoe",
+            email="janedoe@example.com",
             password="password123",
-            user_type= 'not specified',
+            user_type="not specified"
         )
 
         # Create a Student instance referencing the User instance
         self.student = Student.objects.create(
-            name="John Doe",
+            name="Jane Doe",
             username=self.user,
             allocated=True,
             payment="Successful"
         )
 
         self.form_input = {
-            'name': "John Doe Jr.",
+            'name': "Jane Doe Jr.",
             'username':  self.user, # New username for update
-            'email': "john.doe.jr@example.com",
+            'email': "Jane.doe.jr@example.com",
             'allocated': True,
             'payment': "Pending",
         }
@@ -100,21 +100,26 @@ class UpdateStudentTestCase(TestCase):
 
     def test_post_with_non_unique_email(self):
         # Create User instances with user_type='student'
-        self.user = User.objects.create_user(
-            username="@janedoe",
-            email="john.doe.jr@example.com",  # Conflicting email
+        self.user1 = User.objects.create_user(
+            username="@janesmith",
+            email="jane.doe.jr@example.com",  # Conflicting email
             password="password123",
-            user_type="student"
+            user_type="not specified"
+        )
+
+        # Create a Student instance for user1
+        self.student = Student.objects.create(
+            name="Jane Smith",
+            username=self.user1,
+            allocated=True,
+            payment="Pending"
         )
 
         # Fetch the automatically created Student instance
-        self.student = Student.objects.get(username=self.user)
-
-        # Update additional fields for Student instance
-        self.student.name = "Jane Doe"
-        self.student.allocated = True
-        self.student.payment = "Successful"
+        self.student = Student.objects.get(username=self.user1)
         self.student.save()
+
+
 
         before_count = Student.objects.count()
         response = self.client.post(self.url, self.form_input, follow=True)
