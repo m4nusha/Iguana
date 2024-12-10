@@ -1,14 +1,16 @@
 from django.test import TestCase
 from django.urls import reverse
-from tutorials.models import Booking, Session, User
+from tutorials.models import Booking, Session, Student, Tutor, User
 
 INVALID_SESSION_ID = 0
 
 class DeleteSessionViewTest(TestCase):
     def setUp(self):
-        self.student = User.objects.create(username="johndoe",first_name="John",last_name="Doe",email="johndoe@example.com")
-        self.tutor = User.objects.create(username="janesmith",first_name="Jane",last_name="Smith",email="janesmith@example.com")
-        self.booking = Booking.objects.create(student=self.student,tutor=self.tutor,term="TERM1", lesson_type="WEEKLY")
+        student_user = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
+        tutor_user = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
+        self.student = Student.objects.create(username=student_user)
+        self.tutor = Tutor.objects.create(username=tutor_user)
+        self.booking = Booking.objects.create(student=self.student, tutor=self.tutor, term="TERM1", lesson_type="WEEKLY")
         self.session = Session.objects.create(
             booking=self.booking,
             session_date="2025-01-01",
@@ -25,6 +27,7 @@ class DeleteSessionViewTest(TestCase):
 
     def test_get_delete_session(self):
         """test the GET request to the session delete page works and renders the correct template"""
+        self.client.login(username='johndoe', password='password123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'bookings/sessions/session_delete.html')
@@ -37,6 +40,7 @@ class DeleteSessionViewTest(TestCase):
 
     def test_post_with_valid_id(self):
         """test that posting to the delete session page with a valid session ID deletes the session"""
+        self.client.login(username='johndoe', password='password123')
         session_id = self.session.id
         before_count = Session.objects.count()
         response = self.client.post(self.url, follow=True)
@@ -58,8 +62,8 @@ class DeleteSessionViewTest(TestCase):
 
     def test_delete_session_with_deleted_booking(self):
         """test that trying to delete a session with a deleted booking results in a 404 error"""
-        self.client.login(username='testuser', password='12345')
-        self.booking.delete()
+        self.client.login(username='johndoe', password='password123')
+        self.booking.delete()  # Delete the booking
         response = self.client.post(self.url, follow=True)
         self.assertEqual(response.status_code, 404)
 
@@ -67,6 +71,7 @@ class DeleteSessionViewTest(TestCase):
         """test that deleting a session doesn't delete the related booking"""
         before_booking_count = Booking.objects.count()
         before_session_count = Session.objects.count()
+        self.client.login(username='johndoe', password='password123')
         self.client.post(self.url, follow=True)
         self.assertEqual(Booking.objects.count(), before_booking_count)
         self.assertEqual(Session.objects.count(), before_session_count - 1)
@@ -74,14 +79,14 @@ class DeleteSessionViewTest(TestCase):
     def test_session_deleted_in_db(self):
         """test that the session is actually deleted from the database"""
         session_id = self.session.id
-        self.client.login(username='testuser', password='12345')
+        self.client.login(username='johndoe', password='password123')
         response = self.client.post(self.url, follow=True)
         with self.assertRaises(Session.DoesNotExist):
             Session.objects.get(id=session_id)
 
     def test_redirect_after_session_deletion(self):
         """test that after deleting a session, the user is redirected to the correct page"""
-        self.client.login(username='testuser', password='12345')
+        self.client.login(username='johndoe', password='password123')
         response = self.client.post(self.url, follow=True)
         expected_redirect_url = reverse('session_list', kwargs={'booking_id': self.booking.id})
         self.assertRedirects(response, expected_redirect_url, status_code=302, target_status_code=200)
@@ -89,7 +94,7 @@ class DeleteSessionViewTest(TestCase):
     def test_session_cannot_be_accessed_after_deletion(self):
         """test that after deletion, the session cannot be accessed"""
         session_id = self.session.id
-        self.client.login(username='testuser', password='12345')
+        self.client.login(username='johndoe', password='password123')
         self.client.post(self.url, follow=True)
         response = self.client.get(reverse('session_show', kwargs={'pk': session_id}))
         self.assertEqual(response.status_code, 404)

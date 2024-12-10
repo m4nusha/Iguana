@@ -1,7 +1,6 @@
-from decimal import Decimal
 from django.test import TestCase
 from django.urls import reverse
-from tutorials.models import Session, Booking, Tutor
+from tutorials.models import Session, Booking, Student, Tutor
 from django.contrib.auth import get_user_model
 from datetime import date, time, timedelta
 
@@ -9,10 +8,17 @@ User = get_user_model()
 
 class UpdateSessionViewTestCase(TestCase):
     def setUp(self):
-        self.student = User.objects.create_user(username="student", email="student@example.com", password="password")
-        self.tutor = User.objects.create_user(username="tutor", email="tutor@example.com", password="password")
-        Tutor.objects.create(username_id=self.tutor.id, rate=Decimal('50.00'))
-        self.booking = Booking.objects.create(student=self.student, tutor=self.tutor, term='TERM1', lesson_type='Weekly')
+        student_user = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
+        tutor_user = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
+        self.student = Student.objects.create(username=student_user)
+        self.tutor = Tutor.objects.create(username=tutor_user)
+        
+        self.booking = Booking.objects.create(
+            student=self.student, 
+            tutor=self.tutor, 
+            term='TERM1', 
+            lesson_type='Weekly'
+        )
         self.session = Session.objects.create(
             booking=self.booking,
             session_date=date(2025, 1, 1),

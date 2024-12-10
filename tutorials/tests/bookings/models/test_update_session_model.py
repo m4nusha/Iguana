@@ -1,14 +1,15 @@
-from decimal import Decimal
 from django.forms import ValidationError
 from django.test import TestCase
-from tutorials.models import Session, Booking, User
+from tutorials.models import Session, Booking, Student, Tutor, User
 from datetime import timedelta, date, time
 
 class UpdateSessionModelTest(TestCase):
     """unit tests for updating a Session model"""
     def setUp(self):
-        self.student = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
-        self.tutor = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
+        student_user = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
+        tutor_user = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
+        self.student = Student.objects.create(username=student_user)
+        self.tutor = Tutor.objects.create(username=tutor_user)
         self.booking = Booking.objects.create(term="Term1", student=self.student, tutor=self.tutor)
         self.session = Session.objects.create(
             booking=self.booking,
@@ -86,16 +87,14 @@ class UpdateSessionModelTest(TestCase):
 
     def test_update_session_string_representation(self):
         """the string representation of the session"""
-        self.student.username = 'student_user'
-        self.tutor.username = 'tutor_user'
         self.student.save()
         self.tutor.save()
-        self.session.session_date = '2025-01-03'
-        self.session.session_time = '12:30:00'
+        self.session.session_date = date(2025, 1, 3)
+        self.session.session_time = time(12, 30)
         self.session.save()
         expected_str = "Session on 2025-01-03 at 12:30:00 for Term1 | Student: student_user | Tutor: tutor_user"
         self.assertEqual(str(self.session), expected_str)
-
+    
     def test_update_session_with_duplicate_datetime(self):
         """a session cannot be updated with a duplicate date and time"""
         self.session.session_date = self.session2.session_date

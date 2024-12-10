@@ -1,14 +1,16 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from tutorials.models import Booking, Session
+from tutorials.models import Booking, Session, Student, Tutor
 
 User = get_user_model()
 
 class CreateSessionViewTest(TestCase):
     def setUp(self):
-        self.student = User.objects.create_user(username="student", email="student@example.com", password="password")
-        self.tutor = User.objects.create_user(username="tutor", email="tutor@example.com", password="password")
+        student_user = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
+        tutor_user = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
+        self.student = Student.objects.create(username=student_user)
+        self.tutor = Tutor.objects.create(username=tutor_user)
         self.booking = Booking.objects.create(student=self.student, tutor=self.tutor, term=Booking.TERM1)
         self.url = reverse('session_create', args=[self.booking.id])
         self.form_data = {
@@ -51,7 +53,6 @@ class CreateSessionViewTest(TestCase):
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 404)
 
-    # check!!
     def test_create_session_valid(self):
         """test a valid POST request to create a session"""
         before_count = Session.objects.count()
@@ -101,7 +102,6 @@ class CreateSessionViewTest(TestCase):
         self.assertEqual(after_count, before_count)
         self.assertIn('payment_status', response.context['form'].errors)
 
-    # check!!
     def test_create_session_redirects_on_success(self):
         """test that a successful session creation redirects to the correct page"""
         self.form_data['booking'] = self.booking.id

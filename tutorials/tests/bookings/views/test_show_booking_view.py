@@ -1,22 +1,28 @@
 from django.test import TestCase
 from django.urls import reverse
-from tutorials.models import Booking, Session, User
+from tutorials.models import Booking, Session, User, Student, Tutor
 
 
 class ShowBookingViewTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='12345')
-        self.booking = Booking.objects.create(student=self.user, tutor=self.user)
+        student_user = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
+        tutor_user = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
+        self.student = Student.objects.create(username=student_user)
+        self.tutor = Tutor.objects.create(username=tutor_user)
+        
+        self.booking = Booking.objects.create(student=self.student, tutor=self.tutor, term=Booking.TERM1)
+        
         self.session1 = Session.objects.create(booking=self.booking, session_date="2025-01-01", session_time="10:00:00")
         self.session2 = Session.objects.create(booking=self.booking, session_date="2025-01-02", session_time="11:00:00")
+        
         self.url = reverse('session_list', kwargs={'booking_id': self.booking.id})
 
     def test_show_booking(self):
         """test that the booking and its sessions are displayed correctly"""
-        self.client.login(username='testuser', password='12345')
-        response = self.client.get(reverse('session_list', kwargs={'booking_id': self.booking.id}))
+        self.client.login(username='student_user', password='password123')
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, f"{self.booking.lesson_type} Sessions for {self.booking.student.full_name} with {self.booking.tutor.full_name} ({self.booking.term})")
+        self.assertContains(response, f"{self.booking.lesson_type} Sessions for {self.student.username.get_full_name()} with {self.tutor.username.get_full_name()} ({self.booking.term})")
         self.assertContains(response, self.session1.session_date.strftime('%d/%m/%Y'))
         self.assertContains(response, self.session2.session_date.strftime('%d/%m/%Y'))
 
@@ -32,6 +38,7 @@ class ShowBookingViewTest(TestCase):
 
     def test_show_booking_valid(self):
         """test that the booking and its sessions are displayed correctly"""
+        self.client.login(username='student_user', password='password123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'bookings/booking_show.html')
@@ -51,6 +58,7 @@ class ShowBookingViewTest(TestCase):
     
     def test_context_variables(self):
         """test that the correct context variables are passed to the template"""
+        self.client.login(username='student_user', password='password123')
         response = self.client.get(self.url)
         self.assertIn('booking', response.context)
         self.assertIn('sessions', response.context)
@@ -58,6 +66,7 @@ class ShowBookingViewTest(TestCase):
 
     def test_session_urls(self):
         """test that the correct session URLs are generated for update and delete"""
+        self.client.login(username='student_user', password='password123')
         response = self.client.get(self.url)
         self.assertContains(response, f'/sessions/update/{self.session1.id}/')
         self.assertContains(response, f'/sessions/delete/{self.session2.id}/')
