@@ -14,7 +14,6 @@ from .models import Booking, Session, User
 from .forms import BookingForm, SessionForm, CreateUserForm, UserForm
 from django.shortcuts import get_object_or_404
 from django.db.models import Value, F, CharField
-#from django.db.models import Value
 from django.db.models.functions import Concat
 
 

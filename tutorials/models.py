@@ -23,11 +23,12 @@ class User(AbstractUser):
     USER_TYPES = [
         ('student', 'Student'),
         ('tutor', 'Tutor'),
+        ('not specified', 'not specified'),
     ]
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
     email = models.EmailField(unique=True, blank=False, null=False)
-    user_type = models.CharField(max_length=10, choices=USER_TYPES, default='student')
+    user_type = models.CharField(max_length=15, choices=USER_TYPES, default='student')
 
     class Meta:
         """Model options."""

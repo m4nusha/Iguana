@@ -6,7 +6,7 @@ INVALID_STUDENT_ID = 0
 
 class DeleteStudentTestCase(TestCase):
     def setUp(self):
-        # Create a User instance with user_type='student'
+        # Create a User instance
         self.user = User.objects.create_user(
             username="@johndoe",
             email="johndoe@example.com",
@@ -14,16 +14,16 @@ class DeleteStudentTestCase(TestCase):
             user_type="student"
         )
 
-        # Fetch the automatically created Student instance
-        self.student = Student.objects.get(username=self.user)
+        # Create a Student instance referencing the User instance
+        self.student = Student.objects.create(
+            name="John Doe",
+            username=self.user,
+            email="johndoe@student.example.com",
+            allocated=True,
+            payment="Successful"
+        )
 
-        # Update additional fields for the Student instance
-        self.student.name = "John Doe"
-        self.student.allocated = True
-        self.student.payment = "Successful"
-        self.student.save()
-
-        # Formulate the URL for the delete_student view
+        # URL for the show_student view
         self.url = reverse('delete_student', kwargs={'student_id': self.student.id})
 
     def test_delete_student_url(self):
