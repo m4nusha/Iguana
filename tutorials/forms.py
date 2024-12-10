@@ -1,11 +1,9 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
 from .models import Student, StudentRequest
-from .models import Tutor
 from .models import Tutor, Subject
-from .models import User
 from .models import User, Booking, Session
 from django.core.exceptions import ValidationError
 
@@ -152,8 +150,6 @@ class CreateUserForm(forms.ModelForm):
                 Tutor.objects.create(username=user)
         return user
 
-    
-############ my additions ##############
 class TutorForm(forms.ModelForm):
     """Form for creating and updating tutors."""
 
@@ -212,14 +208,24 @@ class StudentForm(forms.ModelForm):
             # Ensure email is unique, case insensitive, excluding the current student's email
             if Student.objects.exclude(id=student_id).filter(email=email.lower()).exists():
                 self.add_error('email', "A student with this email already exists.")
+
             # Normalize email to lowercase
             cleaned_data['email'] = email.lower()
 
         if username:
+            # If username is passed as an ID, retrieve the User instance
+            if isinstance(username, int):
+                username = User.objects.get(id=username)
+
+            # Check for uniqueness
             if Student.objects.exclude(id=student_id).filter(username=username).exists():
                 self.add_error('username', "This user is already associated with another student.")
 
-
+        """
+        if username:
+            if Student.objects.exclude(id=student_id).filter(username_id=username.id).exists():
+                self.add_error('username', "This user is already associated with another student.")
+        """
         # Boolean validation for allocated
         if allocated is not None:
             if isinstance(allocated, bool):
@@ -228,6 +234,12 @@ class StudentForm(forms.ModelForm):
                 self.add_error('allocated', "Allocated must be a boolean value.")
 
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+        return instance
 
 
 class StudentRequestForm(forms.ModelForm):
@@ -382,3 +394,6 @@ class UpdateSessionForm(forms.ModelForm):
             self.add_error('session_date', "Session date cannot be in the past.")
         
         return cleaned_data
+
+
+

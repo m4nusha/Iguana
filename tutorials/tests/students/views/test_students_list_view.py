@@ -11,7 +11,7 @@ class StudentsListTestCase(TestCase):
         # Test setup logic
         # Create User instances with user_type='student' (this will automatically create Student instances)
         self.user1 = User.objects.create_user(
-            username="@johndoe", email="johndoe@example.com", password="password123", user_type="student"
+            username="@janedoe", email="janedoe@example.com", password="password123", user_type="student"
         )
         self.user2 = User.objects.create_user(
             username="@janesmith", email="janesmith@example.com", password="password123", user_type="student"
@@ -26,7 +26,7 @@ class StudentsListTestCase(TestCase):
         self.student3 = Student.objects.get(username=self.user3)
 
         # Update additional fields for Student instances
-        self.student1.name = "John Doe"
+        self.student1.name = "Jane Doe"
         self.student1.allocated = True
         self.student1.payment = "Successful"
         self.student1.save()
@@ -79,21 +79,21 @@ class StudentsListTestCase(TestCase):
         self.assertTrue(all(student.payment == "Pending" for student in students))
 
     def test_search_by_name(self):
-        response = self.client.get(self.url, {"search": "Jane"})
+        response = self.client.get(self.url, {"search": "Alice"})
         students = response.context["students"]
-        self.assertEqual(students.count(), 1)  # Only the student with "Jane" in their name
-        self.assertEqual(students[0].name, "Jane Smith")
+        self.assertEqual(students.count(), 1)  # Only the student with "Alice" in their name
+        self.assertEqual(students[0].name, "Alice Johnson")
 
     def test_sort_by_name_ascending(self):
         response = self.client.get(self.url, {"order": "asc"})
         students = response.context["students"]
         self.assertEqual(students[0].name, "Alice Johnson")  # A-Z order
-        self.assertEqual(students[1].name, "Jane Smith")
-        self.assertEqual(students[2].name, "John Doe")
+        self.assertEqual(students[1].name, "Jane Doe")
+        self.assertEqual(students[2].name, "Jane Smith")
 
     def test_sort_by_name_descending(self):
         response = self.client.get(self.url, {"order": "desc"})
         students = response.context["students"]
-        self.assertEqual(students[0].name, "John Doe")  # Z-A order
-        self.assertEqual(students[1].name, "Jane Smith")
+        self.assertEqual(students[0].name, "Jane Smith")  # Z-A order
+        self.assertEqual(students[1].name, "Jane Doe")
         self.assertEqual(students[2].name, "Alice Johnson")

@@ -11,35 +11,35 @@ INVALID_STUDENT_ID = 0
 
 class UpdateStudentTestCase(TestCase):
     def setUp(self):
-        # Create User instances with user_type='student'
-        self.user1 = User.objects.create_user(
-            username="@johndoe",
-            email="johndoe@example.com",
+        # Create a User instance
+        self.user = User.objects.create_user(
+            username="@janedoe",
+            email="janedoe@example.com",
             password="password123",
-            user_type="student"
+            user_type="not specified"
         )
 
-        # Fetch the automatically created Student instance
-        self.student1 = Student.objects.get(username=self.user1)
-
-        # Update additional fields for Student instance
-        self.student1.name = "John Doe"
-        self.student1.allocated = True
-        self.student1.payment = "Successful"
-        self.student1.save()
+        # Create a Student instance referencing the User instance
+        self.student = Student.objects.create(
+            name="Jane Doe",
+            username=self.user,
+            allocated=True,
+            payment="Successful"
+        )
 
         self.form_input = {
-            'name': "John Doe Jr.",
-            'username': "johndoejr",  # New username for update
-            'email': "john.doe.jr@example.com",
+            'name': "Jane Doe Jr.",
+            'username':  self.user, # New username for update
+            'email': "Jane.doe.jr@example.com",
             'allocated': True,
             'payment': "Pending",
         }
 
-        self.url = reverse('update_student', kwargs={'student_id': self.student1.id})
+        # URL for the show_student view
+        self.url = reverse('update_student', kwargs={'student_id': self.student.id})
 
     def test_update_student_url(self):
-        self.assertEqual(self.url, f'/update_student/{self.student1.id}/')
+        self.assertEqual(self.url, f'/update_student/{self.student.id}/')
 
     def test_get_update_student(self):
         response = self.client.get(self.url)
@@ -56,17 +56,23 @@ class UpdateStudentTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_post_with_valid_data(self):
-        student_id = self.student1.id
+        student_id = self.student.id
         before_count = Student.objects.count()
+
+        # Perform POST request with valid form input
         response = self.client.post(self.url, self.form_input, follow=True)
+
         after_count = Student.objects.count()
-        self.assertEqual(after_count, before_count)  # No new student added
-        expected_redirect_url = reverse('students')  # Redirect to the student list page
+        self.assertEqual(after_count, before_count)  # Ensure no new student was created
+
+        # Verify redirection
+        expected_redirect_url = reverse('students')  # Redirect to student list page
         self.assertRedirects(response, expected_redirect_url, status_code=302, target_status_code=200)
 
+        # Verify updated student fields
         student = Student.objects.get(pk=student_id)
         self.assertEqual(self.form_input['name'], student.name)
-        self.assertEqual(self.form_input['username'], student.username)
+        self.assertEqual(self.form_input['username'], student.username)  # Correctly compare User instance
         self.assertEqual(self.form_input['email'], student.email)
         self.assertEqual(self.form_input['allocated'], student.allocated)
         self.assertEqual(self.form_input['payment'], student.payment)
@@ -95,20 +101,25 @@ class UpdateStudentTestCase(TestCase):
     def test_post_with_non_unique_email(self):
         # Create User instances with user_type='student'
         self.user1 = User.objects.create_user(
-            username="@janedoe",
-            email="john.doe.jr@example.com",  # Conflicting email
+            username="@janesmith",
+            email="jane.doe.jr@example.com",  # Conflicting email
             password="password123",
-            user_type="student"
+            user_type="not specified"
+        )
+
+        # Create a Student instance for user1
+        self.student = Student.objects.create(
+            name="Jane Smith",
+            username=self.user1,
+            allocated=True,
+            payment="Pending"
         )
 
         # Fetch the automatically created Student instance
-        self.student1 = Student.objects.get(username=self.user1)
+        self.student = Student.objects.get(username=self.user1)
+        self.student.save()
 
-        # Update additional fields for Student instance
-        self.student1.name = "Jane Doe"
-        self.student1.allocated = True
-        self.student1.payment = "Successful"
-        self.student1.save()
+
 
         before_count = Student.objects.count()
         response = self.client.post(self.url, self.form_input, follow=True)

@@ -23,7 +23,7 @@ class User(AbstractUser):
     USER_TYPES = [
         ('student', 'Student'),
         ('tutor', 'Tutor'),
-        ('not specified', 'not specified'),
+        ('not specified', 'Not Specified'),
         ('admin', 'Admin')
     ]
     first_name = models.CharField(max_length=50, blank=False)
