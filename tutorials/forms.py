@@ -282,13 +282,13 @@ class BookingForm(forms.ModelForm):
         student = cleaned_data.get('student')
         tutor = cleaned_data.get('tutor')
 
-        if student == tutor:
-            self.add_error('tutor', 'A student cannot book themselves as a tutor.')
-            self.add_error('student', 'A student cannot book themselves as a tutor.')
         if student and not Student.objects.filter(id=student.id).exists():
             self.add_error('student', 'Student does not exist.')
         if tutor and not Tutor.objects.filter(id=tutor.id).exists():
             self.add_error('tutor', 'Tutor does not exist.')
+        if student == tutor:
+            self.add_error('tutor', 'A student cannot book themselves as a tutor.')
+            self.add_error('student', 'A student cannot book themselves as a tutor.')
         if Booking.objects.filter(term=term, lesson_type=lesson_type, student=student, tutor=tutor).exists():
             raise ValidationError('A booking with the same details already exists.')
         

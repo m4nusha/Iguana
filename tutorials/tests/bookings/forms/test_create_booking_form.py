@@ -71,15 +71,6 @@ class CreateBookingFormTest(TestCase):
         self.assertIn('student', form.errors)
         self.assertIn('tutor', form.errors)
 
-    # def test_form_invalid_student_equals_tutor(self):
-    #     """form should be invalid if student and tutor are the same"""
-    #     invalid_data = self.valid_data.copy()
-    #     invalid_data["tutor"] = self.student.id
-    #     form = BookingForm(data=invalid_data)
-    #     self.assertFalse(form.is_valid())
-    #     self.assertIn('student', form.errors)
-    #     self.assertIn('tutor', form.errors)
-
     def test_form_invalid_nonexistent_student(self):
         """form should be invalid if student does not exist"""
         invalid_data = self.valid_data.copy()

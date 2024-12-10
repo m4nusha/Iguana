@@ -6,8 +6,8 @@ from tutorials.models import Booking, Student, Tutor, User
 class CreateBookingModelTest(TestCase):
     """unit tests for the Booking model"""
     def setUp(self):
-        student_user = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
-        tutor_user = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
+        student_user = User.objects.create_user(username="student_user", password="password123", email="student@example.com")
+        tutor_user = User.objects.create_user(username="tutor_user", password="password123", email="tutor@example.com")
         self.student = Student.objects.create(username=student_user)
         self.tutor = Tutor.objects.create(username=tutor_user)
 
@@ -19,24 +19,6 @@ class CreateBookingModelTest(TestCase):
         self.assertEqual(booking.lesson_type, "Weekly")
         self.assertEqual(booking.student, self.student)
         self.assertEqual(booking.tutor, self.tutor)
-
-    # def test_booking_with_same_student_and_tutor(self):
-    #     """prevent booking when student and tutor are the same"""
-    #     booking = Booking(term="Term1", lesson_type="Weekly", student=self.student, tutor=self.tutor)
-    #     with self.assertRaises(ValidationError):
-    #         booking.full_clean()
-
-    # def test_unique_constraint_on_booking(self):
-    #     """ensure duplicate bookings with same term, student and tutor are not allowed"""
-    #     student_user = User.objects.create_user(username='@student', password='password', email='student@example.com')
-    #     tutor_user = User.objects.create_user(username='@tutor', password='password', email='tutor@example.com')
-    #     student = Student.objects.create(username=student_user)
-    #     tutor = Tutor.objects.create(username=tutor_user)
-    #     booking = Booking.objects.create(term='Term1', student=student, tutor=tutor)
-    #     self.assertEqual(str(booking), f'Term1 | Student: {student.full_name} | Tutor: {tutor.full_name}')
-    #     with self.assertRaises(ValidationError):
-    #         booking2 = Booking(term='Term1', student=student, tutor=tutor)
-    #         booking2.full_clean()
     
     def test_multiple_bookings(self):
         """ensure multiple bookings can be created for different terms with same student and tutor"""

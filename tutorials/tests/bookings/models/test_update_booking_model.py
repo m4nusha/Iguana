@@ -36,23 +36,6 @@ class UpdateBookingModelTest(TestCase):
         with self.assertRaises(ValidationError):
             self.booking.full_clean()
 
-    # def test_update_booking_with_same_student_and_tutor(self):
-    #     """prevent updating booking when student and tutor are the same"""
-    #     self.booking.student = self.student
-    #     self.booking.tutor = self.student
-    #     with self.assertRaises(ValidationError):
-    #         self.booking.full_clean()
-
-    # def test_unique_constraint_on_updated_booking(self):
-    #     """ensure duplicate bookings with the same term, lesson type, student, and tutor cannot be updated"""
-    #     student = User.objects.create_user(username='@student', password='password', email='student@example.com')
-    #     tutor = User.objects.create_user(username='@tutor', password='password', email='tutor@example.com')
-    #     booking = Booking.objects.create(term='Term2', lesson_type='Weekly', student=student, tutor=tutor)
-    #     booking2 = Booking.objects.create(term='Term3', lesson_type='Weekly', student=student, tutor=tutor)
-    #     booking2.term = 'Term2'
-    #     with self.assertRaises(ValidationError):
-    #         booking2.full_clean()
-
     def test_multiple_bookings_update(self):
         """ensure multiple bookings can be updated correctly for different terms"""
         booking1 = Booking.objects.create(term="Term2", lesson_type="Weekly", student=self.student, tutor=self.tutor)
@@ -85,19 +68,6 @@ class UpdateBookingModelTest(TestCase):
         form = UpdateBookingForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("tutor", form.errors)
-
-    # def test_update_booking_form_with_same_student_and_tutor(self):
-    #     """ensure form rejects booking with same student and tutor"""
-    #     form_data = {
-    #         "term": "Term2", 
-    #         "lesson_type": "Weekly",
-    #         "student": self.student.id, 
-    #         "tutor": self.student.id,
-    #     }
-    #     form = UpdateBookingForm(data=form_data)
-    #     self.assertFalse(form.is_valid())
-    #     self.assertIn("tutor", form.errors)
-    #     self.assertEqual(form.errors["tutor"], ["The student and tutor cannot be the same person."])
 
     def test_update_booking_form_with_valid_data(self):
         """ensure form accepts valid data"""

@@ -3,6 +3,7 @@ from tutorials.forms import UpdateSessionForm
 from tutorials.models import Session, Booking, Student, Tutor, User
 from datetime import date, time, timedelta
 
+
 class UpdateSessionFormTest(TestCase):
     """unit tests for the Update Session Form"""
     def setUp(self):

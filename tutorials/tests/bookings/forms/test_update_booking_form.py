@@ -37,15 +37,6 @@ class UpdateBookingFormTestCase(TestCase):
             self.assertFalse(form.is_valid())
             self.assertIn(field, form.errors)
 
-    # def test_form_rejects_same_student_and_tutor(self):
-    #     """form rejects if student and tutor are the same"""
-    #     invalid_data = self.valid_data.copy()
-    #     invalid_data["tutor"] = self.student.id
-    #     form = UpdateBookingForm(instance=self.existing_booking, data=invalid_data)
-    #     self.assertFalse(form.is_valid())
-    #     self.assertIn("tutor", form.errors)
-    #     self.assertEqual(form.errors["tutor"], ["The student and tutor cannot be the same person."])
-
     def test_form_invalid_nonexistent_student(self):
         """form should be invalid if student does not exist"""
         invalid_data = self.valid_data.copy()
