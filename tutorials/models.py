@@ -180,7 +180,7 @@ class Tutor(models.Model):
     username = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tutors')
     email = models.EmailField(unique=True)
     subjects = models.ManyToManyField(Subject, related_name='tutors') #dynamic subjects
-    rate = models.DecimalField(max_digits=6, decimal_places=2, default=10.00)  
+    rate = models.DecimalField(max_digits=6, decimal_places=2, default=10.00, validators=[MinValueValidator(Decimal('0.01'))],)  
     
 
     def save(self, *args, **kwargs):
@@ -188,6 +188,9 @@ class Tutor(models.Model):
         if self.email:
             self.email = self.email.lower()
         super().save(*args, **kwargs)
+        if not self.subjects.exists():
+            python_subject, created = Subject.objects.get_or_create(name="Python")
+            self.subjects.add(python_subject)
 
     def __str__(self):
         return f"{self.name} ({self.username.username})"

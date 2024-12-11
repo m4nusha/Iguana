@@ -683,14 +683,8 @@ def list_tutors(request):
     search_query = request.GET.get('search')  # Get the search query
     
     tutors = Tutor.objects.all()
-    #populate()
+    populate()
 
-    #!!!!!
-    # Filter tutors by subject if provided
-    #if subject:
-        #tutors = Tutor.objects.filter(subject=subject)
-    #else:
-        #tutors = Tutor.objects.all()
 
     #filter tutors by subject if provided
     if subject_filter:
@@ -736,24 +730,35 @@ def show_tutor(request, tutor_id):
 
 
 def update_tutor(request,tutor_id):
-    try:
-        tutor = Tutor.objects.get(id=tutor_id)
-    except Tutor.DoesNotExist:
-        raise Http404(f"Could not find a tutor with primary key {tutor_id}")
+    # try:
+    #     tutor = Tutor.objects.get(id=tutor_id)
+    # except Tutor.DoesNotExist:
+    #     raise Http404(f"Could not find a tutor with primary key {tutor_id}")
+    # else:
+    #     if request.method == "POST":
+    #         form = TutorForm(request.POST, instance=tutor)
+    #         if form.is_valid():
+    #             try:
+    #                 form.save()
+    #             except:
+    #                 form.add_error(None, "It was not possible to save this tutor to the database,")
+    #             else:
+    #                 path = reverse('tutors')  # go to list of tutors
+    #                 return HttpResponseRedirect(path)
+    #     else:
+    #         form = TutorForm(instance=tutor)
+    #     return render(request,'update_tutor.html', {'form':form, 'tutor':tutor})
+
+    tutor = get_object_or_404(Tutor, id=tutor_id)
+    
+    if request.method == 'POST':
+        form = TutorForm(request.POST, instance=tutor)  # Ensure the form is instantiated with POST data and the tutor instance
+        if form.is_valid():  # Make sure the form is valid
+            form.save()  # Save the updated tutor
+            return redirect('show_tutor', tutor_id=tutor.id)  # Redirect after successful update
     else:
-        if request.method == "POST":
-            form = TutorForm(request.POST, instance=tutor)
-            if form.is_valid():
-                try:
-                    form.save()
-                except:
-                    form.add_error(None, "It was not possible to save this tutor to the database,")
-                else:
-                    path = reverse('tutors')  # go to list of tutors
-                    return HttpResponseRedirect(path)
-        else:
-            form = TutorForm(instance=tutor)
-        return render(request,'update_tutor.html', {'form':form, 'tutor':tutor})
+        form = TutorForm(instance=tutor)  # Instantiate the form with the existing tutor data
+    return render(request, 'update_tutor.html', {'form': form, 'tutor': tutor})
 
 
 def delete_tutor(request,tutor_id):
@@ -771,3 +776,4 @@ def delete_tutor(request,tutor_id):
             # If request is GET, show confirmation page
         context = f'Are you sure you want to delete the following tutor: "{tutor.name}".'
         return render(request,'delete_tutor.html', {'context': context,'tutor':tutor})
+    

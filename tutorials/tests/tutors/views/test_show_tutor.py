@@ -1,22 +1,28 @@
 from django.test import TestCase
 from django.urls import reverse
 from tutorials.models import Tutor, User, Subject
+from decimal import Decimal
 
 class ShowTutorTestCase(TestCase):
     def setUp(self):
-        # Create a sample tutor
-        self.user = User.objects.create(username = "janedoe")
-
-        self.subject1 = Subject.objects.create(name = "Python")
-        self.subject2 = Subject.objects.create(name = "Java")
+        self.python_subject, created = Subject.objects.get_or_create(name = "Python")
+        self.java_subject, created = Subject.objects.get_or_create(name = "Java")
+        
+        # Create User instances for testing
+        self.user1 = User.objects.create_user(
+            username="@janedoe",
+            email="janedoe@example.com",
+            password="password123",
+        )
 
         self.tutor = Tutor.objects.create(
-            name="John Doe",
-            username="johndoe",
-            email="johndoe@example.com",
-            rate = 25.50
+            name="Jane Doe",
+            username=self.user1,
+            email="janedoe@gmail.com",
+            rate = Decimal("25.50")
         )
-        self.tutor.subjects.add(self.subject1, self.subject2)   #add subjects
+        self.tutor.subjects.add(self.python_subject)
+        self.tutor.subjects.add(self.java_subject)
         self.url = reverse('show_tutor', kwargs={'tutor_id': self.tutor.id})
 
     def test_show_tutor_url(self):
@@ -30,8 +36,18 @@ class ShowTutorTestCase(TestCase):
         self.assertTemplateUsed(response, 'show_tutor.html')
         self.assertIn('tutor', response.context)
         tutor = response.context['tutor']
+        
+        #ensure the tutor in the context is the same as the one created
         self.assertEqual(tutor.id, self.tutor.id)
         self.assertEqual(tutor.name, self.tutor.name)
+        self.assertEqual(tutor.email, self.tutor.email)
+        self.assertEqual(tutor.rate, self.tutor.rate)
+        self.assertEqual(tutor.subjects.count(), 2)
+
+        subject_names = [subject.name for subject in tutor.subjects.all()]
+        self.assertIn("Python", subject_names)
+        self.assertIn("Java", subject_names)
+
 
     def test_get_show_tutor_invalid(self):
         """Ensure an invalid tutor ID raises a 404 error."""
