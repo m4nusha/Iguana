@@ -3,7 +3,7 @@
 ## Team members
 The members of the team are:
 - *Almozon Alamro*
-- *Anastasia Danylenko*
+- *Anastasiya Danylenko*
 - *Manusha Ravindrathas*
 - *Raghad Alshammari*
 - *Tala Alqarzaee*
