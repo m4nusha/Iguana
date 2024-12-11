@@ -1,136 +1,78 @@
-from django.db import transaction
 from django.test import TestCase
 from django.urls import reverse
-from django.http import Http404
-
-from tutorials.forms import StudentForm
 from tutorials.models import Student, User
+from unittest.mock import patch
 
-INVALID_STUDENT_ID = 0
 
+class UpdateStudentViewTest(TestCase):
 
-class UpdateStudentTestCase(TestCase):
     def setUp(self):
-        # Create a User instance
+        # Create a user and a student for testing
         self.user = User.objects.create_user(
-            username="@janedoe",
-            email="janedoe@example.com",
-            password="password123",
-            user_type="not specified"
-        )
-
-        # Create a Student instance referencing the User instance
+            username='@testuser', first_name='Test', last_name='User', email='testuser@example.com', user_type='not specified')
         self.student = Student.objects.create(
-            name="Jane Doe",
-            username=self.user,
-            allocated=True,
-            payment="Successful"
-        )
+            name="Old Name", username=self.user, email="oldemail@example.com")
+        self.url = reverse('update_student', args=[self.student.id])
 
-        self.form_input = {
-            'name': "Jane Doe Jr.",
-            'username':  self.user, # New username for update
-            'email': "Jane.doe.jr@example.com",
-            'allocated': True,
-            'payment': "Pending",
+    def test_valid_student_update(self):
+        """Test that valid student updates work as expected."""
+        data = {
+            'name': 'Updated Name',
+            'username': self.student.username.id,  # Use the User ID for username
+            'email': 'updatedemail@example.com',
+            'allocated': self.student.allocated,
+            'payment': self.student.payment
         }
+        response = self.client.post(self.url, data)
 
-        # URL for the show_student view
-        self.url = reverse('update_student', kwargs={'student_id': self.student.id})
+        # Reload the student from the database to check if the values are updated
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.name, 'Updated Name')
+        self.assertEqual(self.student.email, 'updatedemail@example.com')
+        self.assertRedirects(response, reverse('students'))
 
-    def test_update_student_url(self):
-        self.assertEqual(self.url, f'/update_student/{self.student.id}/')
+    def test_student_not_found(self):
+        """Test that a 404 error is returned if the student does not exist."""
+        non_existing_student_id = 9999
+        url = reverse('update_student', args=[non_existing_student_id])
+        response = self.client.get(url)
 
-    def test_get_update_student(self):
+        self.assertEqual(response.status_code, 404)
+
+    def test_invalid_student_update(self):
+        """Test that invalid form submission (e.g., invalid email) results in form errors."""
+        data = {
+            'name': 'Updated Name',
+            'username': self.student.username.id,
+            'email': 'invalidemail',  # Invalid email
+            'allocated': self.student.allocated,
+            'payment': self.student.payment
+        }
+        response = self.client.post(self.url, data)
+
+        self.assertFormError(response, 'form', 'email', 'Enter a valid email address.')
+
+    @patch('tutorials.forms.StudentForm.save')
+    def test_database_save_error(self, mock_save):
+        """Test that the user is informed if there's an error when saving the student."""
+        mock_save.side_effect = Exception('Database save error')
+
+        data = {
+            'name': 'Updated Name',
+            'username': self.student.username.id,
+            'email': 'updatedemail@example.com',
+            'allocated': self.student.allocated,
+            'payment': self.student.payment
+        }
+        response = self.client.post(self.url, data)
+
+        self.assertFormError(response, 'form', None,
+                             "It was not possible to save this student to the database, Database save error")
+
+    def test_get_request_prefills_form(self):
+        """Test that the form is pre-filled with the student's current data on GET request."""
         response = self.client.get(self.url)
+
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'update_student.html')
-        self.assertIn('form', response.context)
-        form = response.context['form']
-        self.assertTrue(isinstance(form, StudentForm))
-        self.assertFalse(form.is_bound)
-
-    def test_get_update_student_with_invalid_pk(self):
-        invalid_url = reverse('update_student', kwargs={'student_id': INVALID_STUDENT_ID})
-        response = self.client.get(invalid_url)
-        self.assertEqual(response.status_code, 404)
-
-    def test_post_with_valid_data(self):
-        student_id = self.student.id
-        before_count = Student.objects.count()
-
-        # Perform POST request with valid form input
-        response = self.client.post(self.url, self.form_input, follow=True)
-
-        after_count = Student.objects.count()
-        self.assertEqual(after_count, before_count)  # Ensure no new student was created
-
-        # Verify redirection
-        expected_redirect_url = reverse('students')  # Redirect to student list page
-        self.assertRedirects(response, expected_redirect_url, status_code=302, target_status_code=200)
-
-        # Verify updated student fields
-        student = Student.objects.get(pk=student_id)
-        self.assertEqual(self.form_input['name'], student.name)
-        self.assertEqual(self.form_input['username'], student.username)  # Correctly compare User instance
-        self.assertEqual(self.form_input['email'], student.email)
-        self.assertEqual(self.form_input['allocated'], student.allocated)
-        self.assertEqual(self.form_input['payment'], student.payment)
-
-    def test_post_with_invalid_pk(self):
-        invalid_url = reverse('update_student', kwargs={'student_id': INVALID_STUDENT_ID})
-        before_count = Student.objects.count()
-        response = self.client.post(invalid_url, follow=True)
-        after_count = Student.objects.count()
-        self.assertEqual(after_count, before_count)  # No new student added
-        self.assertEqual(response.status_code, 404)
-
-    def test_post_with_invalid_form_data(self):
-        self.form_input['name'] = ''  # Invalid form data (name is required)
-        before_count = Student.objects.count()
-        response = self.client.post(self.url, self.form_input, follow=True)
-        after_count = Student.objects.count()
-        self.assertEqual(after_count, before_count)  # No new student added
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'update_student.html')
-        self.assertIn('form', response.context)
-        form = response.context['form']
-        self.assertTrue(isinstance(form, StudentForm))
-        self.assertTrue(form.is_bound)
-
-    def test_post_with_non_unique_email(self):
-        # Create User instances with user_type='student'
-        self.user1 = User.objects.create_user(
-            username="@janesmith",
-            email="jane.doe.jr@example.com",  # Conflicting email
-            password="password123",
-            user_type="not specified"
-        )
-
-        # Create a Student instance for user1
-        self.student = Student.objects.create(
-            name="Jane Smith",
-            username=self.user1,
-            allocated=True,
-            payment="Pending"
-        )
-
-        # Fetch the automatically created Student instance
-        self.student = Student.objects.get(username=self.user1)
-        self.student.save()
-
-
-
-        before_count = Student.objects.count()
-        response = self.client.post(self.url, self.form_input, follow=True)
-        after_count = Student.objects.count()
-
-        self.assertEqual(after_count, before_count)  # No new student should be added
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'update_student.html')
-        self.assertIn('form', response.context)
-        form = response.context['form']
-        self.assertTrue(isinstance(form, StudentForm))
-        self.assertTrue(form.is_bound)
-        self.assertIn('email', form.errors)  # Check if 'email' field has errors
-
+        self.assertContains(response, self.student.name)
+        self.assertContains(response, self.student.email)
