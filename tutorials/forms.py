@@ -396,4 +396,3 @@ class UpdateSessionForm(forms.ModelForm):
         return cleaned_data
 
 
-
