@@ -1,13 +1,20 @@
 from django.test import TestCase
 from django.urls import reverse
-from tutorials.models import Booking, User
+from tutorials.models import Booking, Student, Tutor, User
 
 class BookingsListTest(TestCase):
     def setUp(self):
         self.user1 = User.objects.create_user(username="@johndoe", password="Password123", email="johndoe@gmail.com")
         self.user2 = User.objects.create_user(username="@janedoe", password="Password123", email="janedoe@gmail.com")
-        self.booking1 = Booking.objects.create(student=self.user1, tutor=self.user2)
-        self.booking2 = Booking.objects.create(student=self.user2, tutor=self.user1)
+        
+        self.student1 = Student.objects.create(username=self.user1, email="johndoe_unique@gmail.com", name=self.user1.full_name)
+        self.student2 = Student.objects.create(username=self.user2, email="janedoe_unique@gmail.com", name=self.user2.full_name)
+        self.tutor1 = Tutor.objects.create(username=self.user2, email=self.user2.email, name=self.user2.full_name)
+        self.tutor2 = Tutor.objects.create(username=self.user1, email=self.user1.email, name=self.user1.full_name)
+        
+        self.booking1 = Booking.objects.create(student=self.student1, tutor=self.tutor2)
+        self.booking2 = Booking.objects.create(student=self.student2, tutor=self.tutor1)
+
         self.url = reverse('booking_list')
 
     def test_bookings_url(self):

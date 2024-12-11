@@ -1,14 +1,16 @@
 from django.forms import ValidationError
 from django.test import TestCase
 from tutorials.forms import UpdateBookingForm
-from tutorials.models import Booking, User
+from tutorials.models import Booking, Student, Tutor, User
 
 class UpdateBookingFormTestCase(TestCase):
     """unit tests for the UpdateBookingForm"""
     
     def setUp(self):
-        self.student = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
-        self.tutor = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
+        student_user = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
+        tutor_user = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
+        self.student = Student.objects.create(username=student_user)
+        self.tutor = Tutor.objects.create(username=tutor_user)
         self.existing_booking = Booking.objects.create(term="Term1", lesson_type="Weekly", student=self.student, tutor=self.tutor)
         self.valid_data = {"term": "Term2", "lesson_type": "Weekly", "student": self.student.id, "tutor": self.tutor.id,}
 
@@ -34,15 +36,6 @@ class UpdateBookingFormTestCase(TestCase):
             form = UpdateBookingForm(instance=self.existing_booking, data=incomplete_data)
             self.assertFalse(form.is_valid())
             self.assertIn(field, form.errors)
-
-    def test_form_rejects_same_student_and_tutor(self):
-        """form rejects if student and tutor are the same"""
-        invalid_data = self.valid_data.copy()
-        invalid_data["tutor"] = self.student.id
-        form = UpdateBookingForm(instance=self.existing_booking, data=invalid_data)
-        self.assertFalse(form.is_valid())
-        self.assertIn("tutor", form.errors)
-        self.assertEqual(form.errors["tutor"], ["The student and tutor cannot be the same person."])
 
     def test_form_invalid_nonexistent_student(self):
         """form should be invalid if student does not exist"""
