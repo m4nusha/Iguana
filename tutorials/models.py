@@ -8,6 +8,7 @@ from django.db import models
 from datetime import datetime, timedelta, date, time
 
 
+
 class User(AbstractUser):
     """Model used for user authentication, and team member related information."""
 
