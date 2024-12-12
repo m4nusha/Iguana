@@ -156,7 +156,7 @@ class Command(BaseCommand):
         """Generates random sessions."""
         bookings = Booking.objects.all()
         venues = ['Bush House', 'Waterloo Campus']
-
+        
         if not bookings.exists():
             print("No bookings available to create sessions.")
             return

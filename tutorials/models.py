@@ -176,6 +176,17 @@ class Subject(models.Model):
         return self.name
 
 class Tutor(models.Model):
+    SUBJECT_CHOICES = [
+        ('Python', 'Python'),
+        ('Java', 'Java'),
+        ('Javascript', 'Javascript'),
+        ('React', 'React'),
+        ('Ruby', 'Ruby'),
+        ('Go', 'Go'),
+        ('HTML/CSS', 'HTML/CSS'),
+        ('C', 'C'),
+        ('Scala', 'Scala'),
+    ]
     name = models.CharField(max_length=255)
     username = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tutors')
     email = models.EmailField(unique=True)
@@ -196,9 +207,10 @@ class Tutor(models.Model):
         return f"{self.name} ({self.username.username})"
 
     def description(self):
-        # Provides a user-readable description excluding email
-        subject_info = f"teaches ({self.get_subject_display()})" if self.get_subject_display() else "has no subject assigned"
-        return f"{self.name} ({self.username.username}) {subject_info}."
+    # Provides a user-readable description with all assigned subjects
+        subject_info = ", ".join(subject.name for subject in self.subjects.all()) if self.subjects.exists() else "has no subject assigned"
+        return f"{self.name} ({self.username.username}) teaches {subject_info}."
+
 
 
 class Booking(models.Model):

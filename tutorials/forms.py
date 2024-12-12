@@ -207,6 +207,7 @@ class TutorForm(forms.ModelForm):
         tutor = super().save(commit=False)
         if commit:
             tutor.save()  #save the tutor instance first
+            tutor.subjects.set(self.cleaned_data['subjects'])
             #if no subjects are selected, assign the default subject "Python"
             if not tutor.subjects.exists():
                 python_subject, created = Subject.objects.get_or_create(name="Python")
