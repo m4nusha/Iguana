@@ -1,5 +1,5 @@
 from decimal import Decimal
-from django.core.validators import RegexValidator, MinValueValidator
+from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.forms import ValidationError
@@ -23,12 +23,13 @@ class User(AbstractUser):
     USER_TYPES = [
         ('student', 'Student'),
         ('tutor', 'Tutor'),
+        ('not specified', 'Not Specified'),
         ('admin', 'Admin')
     ]
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
     email = models.EmailField(unique=True, blank=False, null=False)
-    user_type = models.CharField(max_length=10, choices=USER_TYPES, default='student')
+    user_type = models.CharField(max_length=15, choices=USER_TYPES, default='student')
 
     class Meta:
         """Model options."""
@@ -119,30 +120,67 @@ class Student(models.Model):
         allocation_status = 'allocated' if self.allocated else 'not allocated'
         return f"{self.name} ({self.username.username}) is {allocation_status} and has payment status {self.payment}."
 
-class Tutor(models.Model):
-    SUBJECT_CHOICES = [
-        ('Python', 'Python'),
-        ('Java', 'Java'),
-        ('Javascript', 'Javascript'),
-        ('React', 'React'),
-        ('Ruby', 'Ruby'),
-        ('Go', 'Go'),
-        ('HTML/CSS', 'HTML/CSS'),
-        ('C', 'C'),
-        ('Scala', 'Scala'),
 
+class StudentRequest(models.Model):
+    # Types of requests
+    REQUEST_TYPE_CHOICES = [
+        ('profile_update', 'Profile Update'),
+        ('password_reset', 'Password Reset'),
+        ('course_enrollment', 'Course Enrollment'),
+        ('tutor_assignment', 'Tutor Assignment'),
+        ('session_schedule', 'Session Scheduling'),
+        ('payment_issue', 'Payment Issue'),
+        ('technical_support', 'Technical Support'),
+        ('feedback_complaint', 'Feedback/Complaint'),
+        ('custom_request', 'Custom Request'),
     ]
 
+    # Priority levels
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+    ]
 
+    name = models.CharField(max_length=255)
+    username = models.ForeignKey(User, on_delete=models.CASCADE, related_name='student_requests')
+    request_type = models.CharField(max_length=50, choices=REQUEST_TYPE_CHOICES)
+    description = models.TextField()  # Detailed description of the request
+    status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('in_progress', 'In Progress'), ('resolved', 'Resolved')],
+        default='pending',
+    )
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='low')
+
+    # Automatically adds the current timestamp when the record is created
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.username.username} - {self.get_request_type_display()}"
+
+    def show_details(self):
+        return (
+            f"Student: {self.username.username}\n"
+            f"Request Type: {self.get_request_type_display()}\n"
+            f"Description: {self.description}\n"
+            f"Status: {self.get_status_display()}\n"
+            f"Priority: {self.get_priority_display()}\n"
+            f"Created At: {self.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
+        )
+
+class Subject(models.Model):
+    name = models.CharField(max_length=100 ,unique = True)
+
+    def __str__(self):
+        return self.name
+
+class Tutor(models.Model):
     name = models.CharField(max_length=255)
     username = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tutors')
     email = models.EmailField(unique=True)
-    subject = models.CharField(
-        max_length=100,
-        choices=SUBJECT_CHOICES,
-        default='Python',
-    )
-    rate = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.00)], default=10.00)
+    subjects = models.ManyToManyField(Subject, related_name='tutors') #dynamic subjects
+    rate = models.DecimalField(max_digits=6, decimal_places=2, default=10.00)  
     
 
     def save(self, *args, **kwargs):
@@ -191,21 +229,21 @@ class Booking(models.Model):
         ordering = ['term', 'lesson_type', 'student', 'tutor']
         unique_together = ['term', 'lesson_type', 'student', 'tutor']
 
-    def clean(self):
+    def clean(self):        
         if not self.student_id or not self.tutor_id:
             raise ValidationError("Both student and tutor must be assigned.")
-        if self.student_id == self.tutor_id:
-            raise ValidationError("A student cannot book themselves as a tutor.")
         if not Student.objects.filter(id=self.student_id).exists():
             raise ValidationError(f"Student with ID {self.student_id} does not exist.")
         if not Tutor.objects.filter(id=self.tutor_id).exists():
             raise ValidationError(f"Tutor with ID {self.tutor_id} does not exist.")
+        if self.student_id == self.tutor_id:
+            raise ValidationError("A student cannot book themselves as a tutor.")
         if Booking.objects.filter(term=self.term,lesson_type=self.lesson_type, student_id=self.student_id, tutor_id=self.tutor_id).exists():
             raise ValidationError('A booking with the same details already exists.')
 
     def __str__(self):
         """return a readable string representation of booking"""
-        return f'{self.term} | Student: {self.student.name} | Tutor: {self.tutor.name}'
+        return f'{self.term} | {self.lesson_type} | Student: {self.student.name} | Tutor: {self.tutor.name}'
     
 
 class Session(models.Model):
@@ -276,6 +314,7 @@ class Session(models.Model):
             return super().save(*args, **kwargs)
 
         super().save(*args, **kwargs)
+    
 
     def calculate_total_amount(self):
         tutor = self.booking.tutor # UserInstance

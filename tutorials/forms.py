@@ -1,11 +1,11 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from .models import Tutor
+from .models import Student, StudentRequest
+from .models import Tutor, Subject
 from .models import User, Booking, Session
 from django.core.exceptions import ValidationError
-from .models import Student
 
 
 class LogInForm(forms.Form):
@@ -150,13 +150,18 @@ class CreateUserForm(forms.ModelForm):
                 Tutor.objects.create(username=user)
         return user
 
-    
-############ my additions ##############
 class TutorForm(forms.ModelForm):
     """Form for creating and updating tutors."""
+
+    subjects = forms.ModelMultipleChoiceField(
+        queryset=Subject.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+
     class Meta:
         model = Tutor
-        fields = ['name', 'username', 'email', 'subject', 'rate']
+        fields = ['name', 'username', 'email','subjects', 'rate']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -182,9 +187,6 @@ class TutorForm(forms.ModelForm):
 
         return cleaned_data
 
-
-
-
 class StudentForm(forms.ModelForm):
     """Form to create or update students"""
     class Meta:
@@ -206,14 +208,24 @@ class StudentForm(forms.ModelForm):
             # Ensure email is unique, case insensitive, excluding the current student's email
             if Student.objects.exclude(id=student_id).filter(email=email.lower()).exists():
                 self.add_error('email', "A student with this email already exists.")
+
             # Normalize email to lowercase
             cleaned_data['email'] = email.lower()
 
         if username:
+            # If username is passed as an ID, retrieve the User instance
+            if isinstance(username, int):
+                username = User.objects.get(id=username)
+
+            # Check for uniqueness
             if Student.objects.exclude(id=student_id).filter(username=username).exists():
                 self.add_error('username', "This user is already associated with another student.")
 
-
+        """
+        if username:
+            if Student.objects.exclude(id=student_id).filter(username_id=username.id).exists():
+                self.add_error('username', "This user is already associated with another student.")
+        """
         # Boolean validation for allocated
         if allocated is not None:
             if isinstance(allocated, bool):
@@ -223,12 +235,57 @@ class StudentForm(forms.ModelForm):
 
         return cleaned_data
 
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+        return instance
+
+
+class StudentRequestForm(forms.ModelForm):
+    class Meta:
+        model = StudentRequest
+        fields = ['username', 'request_type', 'description', 'status', 'priority']
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)  # Get the instance without saving to the database yet
+        instance.name = instance.username.get_full_name()  # Populate the name based on the username
+        if commit:
+            instance.save()  # Save to the database
+        return instance
+
+    def clean(self):
+        cleaned_data = super().clean()
+        username = cleaned_data.get('username')
+        request_type = cleaned_data.get('request_type')
+
+        # Get the current instance ID if updating, otherwise None
+        instance_id = self.instance.id if self.instance else None
+
+        # Ensure uniqueness of request_type for the same username, excluding the current instance
+        if StudentRequest.objects.exclude(id=instance_id).filter(username=username, request_type=request_type).exists():
+            self.add_error(
+                'request_type',
+                f"A request of this type already exists for user @{username}."
+            )
+
+        return cleaned_data
+
+
 class BookingForm(forms.ModelForm):
     """Form to create or update a booking."""
 
     class Meta:
         model = Booking
         fields = ['term','lesson_type', 'student', 'tutor']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # student + tutor fields display only usernames
+        self.fields['student'].queryset = Student.objects.all()
+        self.fields['student'].label_from_instance = lambda obj: obj.username.username
+        self.fields['tutor'].queryset = Tutor.objects.all()
+        self.fields['tutor'].label_from_instance = lambda obj: obj.username.username
 
     def clean(self):
         cleaned_data = super().clean()
@@ -237,13 +294,13 @@ class BookingForm(forms.ModelForm):
         student = cleaned_data.get('student')
         tutor = cleaned_data.get('tutor')
 
+        if student and not Student.objects.filter(id=student.id).exists():
+            self.add_error('student', 'Student does not exist.')
+        if tutor and not Tutor.objects.filter(id=tutor.id).exists():
+            self.add_error('tutor', 'Tutor does not exist.')
         if student == tutor:
             self.add_error('tutor', 'A student cannot book themselves as a tutor.')
             self.add_error('student', 'A student cannot book themselves as a tutor.')
-        if student and not User.objects.filter(id=student.id).exists():
-            self.add_error('student', 'Student does not exist.')
-        if tutor and not User.objects.filter(id=tutor.id).exists():
-            self.add_error('tutor', 'Tutor does not exist.')
         if Booking.objects.filter(term=term, lesson_type=lesson_type, student=student, tutor=tutor).exists():
             raise ValidationError('A booking with the same details already exists.')
         
@@ -268,9 +325,9 @@ class UpdateBookingForm(forms.ModelForm):
             raise ValidationError("Student must be selected.")
         if tutor is None:
             raise ValidationError("Tutor must be selected.")
-        if not User.objects.filter(id=student.id).exists():
+        if not Student.objects.filter(id=student.id).exists():
             self.add_error('student', 'The selected student does not exist.')
-        if not User.objects.filter(id=tutor.id).exists():
+        if not Tutor.objects.filter(id=tutor.id).exists():
             self.add_error('tutor', 'The selected tutor does not exist.')
         if student == tutor:
             self.add_error('tutor', 'The student and tutor cannot be the same person.')
@@ -337,3 +394,4 @@ class UpdateSessionForm(forms.ModelForm):
             self.add_error('session_date', "Session date cannot be in the past.")
         
         return cleaned_data
+
