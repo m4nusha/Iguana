@@ -132,6 +132,8 @@ class Command(BaseCommand):
             if Booking.objects.filter(term=term, lesson_type=lesson_type, student=student, tutor=tutor).exists():
                 print(f"Skipping duplicate booking for {student} and {tutor}")
                 continue
+            else:
+                print(f"Created booking for {student} with {tutor} in {term}.")
 
             try:
                 Booking.objects.create(term=term, lesson_type=lesson_type, student=student, tutor=tutor)
@@ -203,6 +205,9 @@ class Command(BaseCommand):
     #  
        
     def try_create_user(self, data):
+        if User.objects.filter(email=data['email']).exists():
+            print(f"Skipping user {data['username']} as email already exists.")
+            return
         try:
             self.create_user(data)
         except Exception as e: #not sure tbh
