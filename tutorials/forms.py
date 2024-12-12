@@ -394,5 +394,3 @@ class UpdateSessionForm(forms.ModelForm):
             self.add_error('session_date', "Session date cannot be in the past.")
         
         return cleaned_data
-
-
