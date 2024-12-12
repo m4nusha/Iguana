@@ -109,7 +109,6 @@ class Command(BaseCommand):
         except Exception as e:
             print(f"Error creating user {username}: {e}")
 
-       
     #
 
     def generate_booking(self):
