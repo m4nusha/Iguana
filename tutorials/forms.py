@@ -102,22 +102,28 @@ class PasswordForm(NewPasswordMixin):
 class SignUpForm(NewPasswordMixin, forms.ModelForm):
     """Form enabling unregistered users to sign up."""
 
+    USER_TYPE_CHOICES = [
+        ('student', 'Student'),
+        ('tutor', 'Tutor'),
+    ]
+    user_type = forms.ChoiceField(choices=USER_TYPE_CHOICES, widget=forms.Select)
+
     class Meta:
         """Form options."""
-
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email']
+        fields = ['first_name', 'last_name', 'username', 'email', 'user_type']
 
     def save(self):
         """Create a new user."""
-
         super().save(commit=False)
+
         user = User.objects.create_user(
             self.cleaned_data.get('username'),
             first_name=self.cleaned_data.get('first_name'),
             last_name=self.cleaned_data.get('last_name'),
             email=self.cleaned_data.get('email'),
             password=self.cleaned_data.get('new_password'),
+            user_type=self.cleaned_data.get('user_type')
         )
         return user
     
@@ -421,5 +427,3 @@ class UpdateSessionForm(forms.ModelForm):
             self.add_error('session_date', "Session date cannot be in the past.")
         
         return cleaned_data
-
-

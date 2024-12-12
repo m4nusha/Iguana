@@ -159,19 +159,23 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
 
 
 class SignUpView(LoginProhibitedMixin, FormView):
-    """Display the sign up screen and handle sign ups."""
+    """Display the sign-up screen and handle sign-ups."""
 
     form_class = SignUpForm
     template_name = "sign_up.html"
     redirect_when_logged_in_url = settings.REDIRECT_URL_WHEN_LOGGED_IN
 
     def form_valid(self, form):
+        """Handle valid form submission."""
         self.object = form.save()
-        login(self.request, self.object)
-        return super().form_valid(form)
+        messages.success(self.request, "Registration successful! Please log in.")
+        # redirect to login page after successful sign up
+        return redirect('log_in')
 
     def get_success_url(self):
-        return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+        """Override the default success URL."""
+        return reverse('log_in')
+
 
 def populate():
     users = User.objects.all()

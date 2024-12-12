@@ -24,6 +24,8 @@ class Command(BaseCommand):
     def __init__(self):
         super().__init__()
         self.faker = Faker('en_GB')
+        #Tala says add the functions in handle here
+        
 
     def handle(self, *args, **options):
         """Main entry point for the seeding process."""
@@ -37,7 +39,8 @@ class Command(BaseCommand):
         """Creates users from fixtures and generates additional random users."""
         self.create_admin_user()
         self.generate_user_fixtures()
-        self.generate_random_users()
+        self.generate_random_users()    #ERROR
+    
 
     def create_admin_user(self):
         """Ensures John Doe is the only admin."""
