@@ -176,11 +176,22 @@ class Subject(models.Model):
         return self.name
 
 class Tutor(models.Model):
+    SUBJECT_CHOICES = [
+        ('Python', 'Python'),
+        ('Java', 'Java'),
+        ('Javascript', 'Javascript'),
+        ('React', 'React'),
+        ('Ruby', 'Ruby'),
+        ('Go', 'Go'),
+        ('HTML/CSS', 'HTML/CSS'),
+        ('C', 'C'),
+        ('Scala', 'Scala'),
+    ]
     name = models.CharField(max_length=255)
     username = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tutors')
     email = models.EmailField(unique=True)
     subjects = models.ManyToManyField(Subject, related_name='tutors') #dynamic subjects
-    rate = models.DecimalField(max_digits=6, decimal_places=2, default=10.00)  
+    rate = models.DecimalField(max_digits=6, decimal_places=2, default=10.00, validators=[MinValueValidator(Decimal('0.01'))],)  
     
 
     def save(self, *args, **kwargs):
@@ -188,14 +199,18 @@ class Tutor(models.Model):
         if self.email:
             self.email = self.email.lower()
         super().save(*args, **kwargs)
+        if not self.subjects.exists():
+            python_subject, created = Subject.objects.get_or_create(name="Python")
+            self.subjects.add(python_subject)
 
     def __str__(self):
         return f"{self.name} ({self.username.username})"
 
     def description(self):
-        # Provides a user-readable description excluding email
-        subject_info = f"teaches ({self.get_subject_display()})" if self.get_subject_display() else "has no subject assigned"
-        return f"{self.name} ({self.username.username}) {subject_info}."
+    # Provides a user-readable description with all assigned subjects
+        subject_info = ", ".join(subject.name for subject in self.subjects.all()) if self.subjects.exists() else "has no subject assigned"
+        return f"{self.name} ({self.username.username}) teaches {subject_info}."
+
 
 
 class Booking(models.Model):

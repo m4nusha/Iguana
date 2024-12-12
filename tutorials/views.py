@@ -595,10 +595,15 @@ def booking_show(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
     sessions = booking.sessions.all()
 
+
     # Get filter values from request
     venue = request.GET.get('venue', None)
     payment_status = request.GET.get('payment', None)
     order = request.GET.get('order', None)
+    
+    print(f"Initial Sessions: {booking.sessions.all()}")
+    print(f"Venue Filter: {venue}")
+    print(f"Payment Status Filter: {payment_status}")
 
     # Apply filters
     if venue:
@@ -611,6 +616,9 @@ def booking_show(request, booking_id):
         sessions = sessions.order_by('session_date')
     elif order == 'furthest':
         sessions = sessions.order_by('-session_date')
+    
+    print(f"Booking: {booking}")
+    print(f"Filtered Sessions: {sessions}")
     
     # Calculate Total Amount
     for session in sessions:
@@ -671,30 +679,26 @@ class SessionDeleteView(DeleteView):
         return reverse_lazy('session_list', kwargs={'booking_id': self.object.booking.id})
 
 
-########## my additions ##########
-
-from .models import Tutor
-
 def list_tutors(request):
     """Display a list of all tutors."""
-    #!!!!!!
+    subjects = [
+        'Python', 'Java', 'Javascript', 'React',
+        'Ruby', 'Go', 'HTML/CSS', 'C', 'Scala'
+    ]
+    for subject in subjects:
+        Subject.objects.get_or_create(name=subject)
+        
     subject_filter = request.GET.get('subject')  # Get the subject filter
     order = request.GET.get('order')  # Get the order filter
     search_query = request.GET.get('search')  # Get the search query
     
     tutors = Tutor.objects.all()
-    #populate()
+    populate()
 
-    #!!!!!
-    # Filter tutors by subject if provided
-    #if subject:
-        #tutors = Tutor.objects.filter(subject=subject)
-    #else:
-        #tutors = Tutor.objects.all()
 
     #filter tutors by subject if provided
     if subject_filter:
-        tutors = tutors.filter(subjects__name=subject_filter) #ManyToManyField filter
+        tutors = tutors.filter(subjects__id=subject_filter) #ManyToManyField filter
 
     #filter tutors by name if search query is provided
     if search_query:
@@ -708,10 +712,10 @@ def list_tutors(request):
 
     #get all subjects for the filter dropdown
     all_subjects = Subject.objects.all()
-
+    subject_choices = [(subject.id, subject.name) for subject in all_subjects]
     return render(request, 'list_tutors.html', {
         'tutors': tutors,
-        'subject_choices': all_subjects,
+        'subject_choices': subject_choices,
         'current_order': order,  #pass current order for UI feedback
         'search_query': search_query,  #pass search query for UI feedback
         'current_subject': subject_filter, #pass the selected subject for UI feedback
@@ -736,24 +740,15 @@ def show_tutor(request, tutor_id):
 
 
 def update_tutor(request,tutor_id):
-    try:
-        tutor = Tutor.objects.get(id=tutor_id)
-    except Tutor.DoesNotExist:
-        raise Http404(f"Could not find a tutor with primary key {tutor_id}")
+    tutor = get_object_or_404(Tutor, id=tutor_id)
+    if request.method == 'POST':
+        form = TutorForm(request.POST, instance=tutor)  # Ensure the form is instantiated with POST data and the tutor instance
+        if form.is_valid(): 
+            form.save()  
+            return redirect('tutors')  # Redirect after successful update
     else:
-        if request.method == "POST":
-            form = TutorForm(request.POST, instance=tutor)
-            if form.is_valid():
-                try:
-                    form.save()
-                except:
-                    form.add_error(None, "It was not possible to save this tutor to the database,")
-                else:
-                    path = reverse('tutors')  # go to list of tutors
-                    return HttpResponseRedirect(path)
-        else:
-            form = TutorForm(instance=tutor)
-        return render(request,'update_tutor.html', {'form':form, 'tutor':tutor})
+        form = TutorForm(instance=tutor)  # Instantiate the form with the existing tutor data
+    return render(request, 'update_tutor.html', {'form': form, 'tutor': tutor})
 
 
 def delete_tutor(request,tutor_id):
@@ -771,3 +766,4 @@ def delete_tutor(request,tutor_id):
             # If request is GET, show confirmation page
         context = f'Are you sure you want to delete the following tutor: "{tutor.name}".'
         return render(request,'delete_tutor.html', {'context': context,'tutor':tutor})
+    

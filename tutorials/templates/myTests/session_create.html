@@ -1,7 +1,0 @@
-<h1>Create Session for {{ booking.student.full_name }} with {{ booking.tutor.full_name }}</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Create</button>
-</form>
-<a href="{% url 'session_list' booking.id %}">Back to Sessions</a>

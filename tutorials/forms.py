@@ -162,30 +162,57 @@ class TutorForm(forms.ModelForm):
     class Meta:
         model = Tutor
         fields = ['name', 'username', 'email','subjects', 'rate']
+        rate = forms.DecimalField(max_digits=6, decimal_places=2)
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the form with default values."""
+        super().__init__(*args, **kwargs)
+        #set the default subject to "Python" if it exists
+        try:
+            default_subject = Subject.objects.get(name = "Python")
+            if not self.instance.pk:  #only pre-select for new Tutor instances
+                self.fields['subjects'].initial = [default_subject.id]
+        except Subject.DoesNotExist:
+            #handles the case where "Python" is not yet in the database
+            pass
 
     def clean(self):
         cleaned_data = super().clean()
         email = cleaned_data.get('email')
         username = cleaned_data.get('username')
 
-        # Get the current tutor instance ID if updating, otherwise None
+        #get the current tutor instance ID if updating otherwise none
         tutor_id = self.instance.id if self.instance and self.instance.id else None
 
-        # Case-insensitive email validation
+        #case insensitive email validation
         if email:
             tutor_id = self.instance.id if self.instance else None
-            # Ensure email is unique, case insensitive, excluding the current tutor's email
+            #ensure that email is unique, case insensitive, excluding the current tutor's email
             if Tutor.objects.exclude(id=tutor_id).filter(email=email.lower()).exists():
                 self.add_error('email', "A tutor with this email already exists.")
-            # Normalize email to lowercase
+            #normalise email to lowercase
             cleaned_data['email'] = email.lower()
 
-        # Ensure username is unique (excluding the current tutor's username)
+        #ensure username is unique (excluding the current tutor's username)
         if username:
+            tutor_id = self.instance.id if self.instance else None
             if Tutor.objects.exclude(id=tutor_id).filter(username=username).exists():
                 self.add_error('username', "This username is already taken.")
+            cleaned_data['username'] = username
 
         return cleaned_data
+    
+    def save(self, commit=True):
+        """Override save method to ensure default subject is assigned."""
+        tutor = super().save(commit=False)
+        if commit:
+            tutor.save()  #save the tutor instance first
+            tutor.subjects.set(self.cleaned_data['subjects'])
+            #if no subjects are selected, assign the default subject "Python"
+            if not tutor.subjects.exists():
+                python_subject, created = Subject.objects.get_or_create(name="Python")
+                tutor.subjects.add(python_subject)
+        return tutor
 
 class StudentForm(forms.ModelForm):
     """Form to create or update students"""

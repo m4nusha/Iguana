@@ -15,11 +15,11 @@
         <select name="subject" id="subject" class="form-select">
           <option value="">All Subjects</option>
           {% for subject, subject_label in subject_choices %}
-            <option value="{{ subject }}" {% if request.GET.subject == subject %}selected{% endif %}>
+            <option value="{{ subject }}" {% if current_subject == subject|stringformat:"s" %}selected{% endif %}>
               {{ subject_label }}
             </option>
           {% endfor %}
-        </select>
+        </select>        
       </div>
 
       <!-- Search by Name -->
@@ -73,7 +73,7 @@
         <td>{{ tutor.name }}</td>
         <td>{{ tutor.username }}</td>
         <td>{{ tutor.email }}</td>
-        <td>{{ tutor.subject }}</td>
+        <td>{% for subject in tutor.subjects.all %}{{ subject.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
         <td>{{ tutor.rate }}</td>
         <td>
           <div class="btn-group" role="group">
