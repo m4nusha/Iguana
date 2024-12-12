@@ -4,9 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.forms import ValidationError
 from libgravatar import Gravatar
-from django.db import models
 from datetime import datetime, timedelta, date, time
-
 
 
 class User(AbstractUser):
@@ -87,6 +85,8 @@ class User(AbstractUser):
 
 
 class Student(models.Model):
+    """Model used for student"""
+    
     PENDING = 'Pending'
     SUCCESSFUL = 'Successful'
 
@@ -122,6 +122,7 @@ class Student(models.Model):
 
 
 class StudentRequest(models.Model):
+    """Model used for student requests"""
     # Types of requests
     REQUEST_TYPE_CHOICES = [
         ('profile_update', 'Profile Update'),
@@ -170,12 +171,17 @@ class StudentRequest(models.Model):
         )
 
 class Subject(models.Model):
+    """
+    Represents a subject that tutors can teach. 
+    Used to dynamically associate tutors with one or more subjects.
+    """
     name = models.CharField(max_length=100 ,unique = True)
 
     def __str__(self):
         return self.name
 
 class Tutor(models.Model):
+    """Model used for tutor"""
     SUBJECT_CHOICES = [
         ('Python', 'Python'),
         ('Java', 'Java'),
@@ -190,7 +196,7 @@ class Tutor(models.Model):
     name = models.CharField(max_length=255)
     username = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tutors')
     email = models.EmailField(unique=True)
-    subjects = models.ManyToManyField(Subject, related_name='tutors') #dynamic subjects
+    subjects = models.ManyToManyField(Subject, related_name='tutors') 
     rate = models.DecimalField(max_digits=6, decimal_places=2, default=10.00, validators=[MinValueValidator(Decimal('0.01'))],)  
     
 
@@ -332,7 +338,6 @@ class Session(models.Model):
     
 
     def calculate_total_amount(self):
-        tutor = self.booking.tutor # UserInstance
         tutor_instance = self.booking.tutor
         tutor_rate=tutor_instance.rate
 
