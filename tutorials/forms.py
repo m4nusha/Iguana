@@ -2,9 +2,7 @@ from datetime import date, datetime
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from .models import Student, StudentRequest
-from .models import Tutor, Subject
-from .models import User, Booking, Session
+from .models import Student, StudentRequest, Tutor, Subject, User, Booking, Session
 from django.core.exceptions import ValidationError
 
 
@@ -149,10 +147,8 @@ class CreateUserForm(forms.ModelForm):
         if commit:
             user.save()
             if user_type == 'student':
-                from .models import Student
                 Student.objects.create(username=user)
             elif user_type == 'tutor':
-                from .models import Tutor
                 Tutor.objects.create(username=user)
         return user
 
@@ -171,15 +167,12 @@ class TutorForm(forms.ModelForm):
         rate = forms.DecimalField(max_digits=6, decimal_places=2)
 
     def __init__(self, *args, **kwargs):
-        """Initialize the form with default values."""
         super().__init__(*args, **kwargs)
-        #set the default subject to "Python" if it exists
         try:
             default_subject = Subject.objects.get(name = "Python")
-            if not self.instance.pk:  #only pre-select for new Tutor instances
+            if not self.instance.pk: 
                 self.fields['subjects'].initial = [default_subject.id]
         except Subject.DoesNotExist:
-            #handles the case where "Python" is not yet in the database
             pass
 
     def clean(self):
@@ -212,9 +205,9 @@ class TutorForm(forms.ModelForm):
         """Override save method to ensure default subject is assigned."""
         tutor = super().save(commit=False)
         if commit:
-            tutor.save()  #save the tutor instance first
+            tutor.save()  
             tutor.subjects.set(self.cleaned_data['subjects'])
-            #if no subjects are selected, assign the default subject "Python"
+
             if not tutor.subjects.exists():
                 python_subject, created = Subject.objects.get_or_create(name="Python")
                 tutor.subjects.add(python_subject)
@@ -254,12 +247,6 @@ class StudentForm(forms.ModelForm):
             if Student.objects.exclude(id=student_id).filter(username=username).exists():
                 self.add_error('username', "This user is already associated with another student.")
 
-        """
-        if username:
-            if Student.objects.exclude(id=student_id).filter(username_id=username.id).exists():
-                self.add_error('username', "This user is already associated with another student.")
-        """
-        # Boolean validation for allocated
         if allocated is not None:
             if isinstance(allocated, bool):
                 pass  # Valid boolean value
@@ -276,6 +263,7 @@ class StudentForm(forms.ModelForm):
 
 
 class StudentRequestForm(forms.ModelForm):
+    """Form to create or update student requests"""
     class Meta:
         model = StudentRequest
         fields = ['username', 'request_type', 'description', 'status', 'priority']
@@ -284,7 +272,7 @@ class StudentRequestForm(forms.ModelForm):
         instance = super().save(commit=False)  # Get the instance without saving to the database yet
         instance.name = instance.username.get_full_name()  # Populate the name based on the username
         if commit:
-            instance.save()  # Save to the database
+            instance.save()  
         return instance
 
     def clean(self):
@@ -307,14 +295,13 @@ class StudentRequestForm(forms.ModelForm):
 
 class BookingForm(forms.ModelForm):
     """Form to create or update a booking."""
-
     class Meta:
         model = Booking
         fields = ['term','lesson_type', 'student', 'tutor']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # student + tutor fields display only usernames
+
         self.fields['student'].queryset = Student.objects.all()
         self.fields['student'].label_from_instance = lambda obj: obj.username.username
         self.fields['tutor'].queryset = Tutor.objects.all()
@@ -342,7 +329,6 @@ class BookingForm(forms.ModelForm):
 
 class UpdateBookingForm(forms.ModelForm):
     """Form to update an existing booking."""
-
     class Meta:
         model = Booking
         fields = ['term','lesson_type', 'student', 'tutor']
@@ -371,7 +357,7 @@ class UpdateBookingForm(forms.ModelForm):
 
 
 class SessionForm(forms.ModelForm):
-
+    """Form to create sessions"""
     class Meta:
         model = Session
         unique_together = ('booking', 'session_date', 'session_time')
@@ -409,7 +395,7 @@ class SessionForm(forms.ModelForm):
 
 
 class UpdateSessionForm(forms.ModelForm):
-
+    """Form to update sessions"""
     class Meta:
         model = Session
         fields = ['session_date', 'session_time', 'duration', 'venue', 'payment_status']
