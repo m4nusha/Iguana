@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from django.core.management.base import BaseCommand
 from tutorials.models import User, Student, Tutor, Booking, Session, StudentRequest, Subject
 import random
@@ -16,7 +16,7 @@ class Command(BaseCommand):
 
     USER_COUNT = 300
     BOOKING_COUNT = 200
-    SESSION_COUNT = 200
+    SESSION_COUNT = 4000
     STUDENT_REQUEST_COUNT = 50
     DEFAULT_PASSWORD = 'Password123'
     help = 'Seeds the database with sample data.'
@@ -165,24 +165,32 @@ class Command(BaseCommand):
         print("Bookings seeding complete.")
 
     def generate_random_sessions(self):
-        """Generates exactly one session per booking."""
+        """Generates exactly 20 non-overlapping sessions per booking."""
         bookings = Booking.objects.all()
         venues = ['Bush House', 'Waterloo Campus']
-        
+
         if not bookings.exists():
             print("No bookings available to create sessions.")
             return
 
         for booking in bookings:
-            session_date = self.faker.date_between(start_date="today", end_date="+90d")
-            session_time = self.faker.time(pattern='%H:%M:%S', end_datetime=None)
-            duration = timedelta(hours=random.randint(1, 4))
-            venue = random.choice(venues)
-            payment_status = random.choice(['Pending', 'Successful'])
+            # Start the sessions on a random date within the next 90 days
+            session_start_date = self.faker.date_between(start_date="today", end_date="+30d")
+            session_start_time = datetime.combine(session_start_date, time(hour=9))  # Start at 9:00 AM
 
-            try:
-                # Ensure only one session is created per booking
-                if not Session.objects.filter(booking=booking).exists():
+            for i in range(20):  # Create 20 sessions
+                # Calculate the session's start time and date
+                current_session_time = session_start_time + timedelta(days=i // 4, hours=(i % 4) * 2)  # 4 sessions per day, 2 hours apart
+                session_date = current_session_time.date()
+                session_time = current_session_time.time()
+
+                # Session attributes
+                duration = timedelta(hours=1)
+                venue = random.choice(venues)
+                payment_status = random.choice(['Pending', 'Successful'])
+
+                try:
+                    # Create the session
                     Session.objects.create(
                         booking=booking,
                         session_date=session_date,
@@ -191,10 +199,13 @@ class Command(BaseCommand):
                         venue=venue,
                         payment_status=payment_status,
                     )
-            except Exception as e:
-                print(f"Error creating session for booking {booking.id}: {e}")
+                except Exception as e:
+                    print(f"Error creating session for booking {booking.id}: {e}")
 
         print("Sessions seeding complete.")
+
+
+
 
 
     def generate_random_student_requests(self):
