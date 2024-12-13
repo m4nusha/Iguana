@@ -19,9 +19,8 @@
             <p><strong>Payment Status:</strong> {{ session.payment_status }}</p>
         </div>
         <div class="card-footer d-flex justify-content-between">
-            <a href="{% url 'session_update' session.pk %}" class="btn btn-warning">Update</a>
-            <a href="{% url 'session_delete' session.pk %}" class="btn btn-danger">Delete</a>
-            <a href="{% url 'booking_show' session.booking.pk %}" class="btn btn-secondary">Back to Booking</a>
+            
+            <a href="{% url 'session_list' session.booking.pk %}" class="btn btn-secondary">Back to Booking</a>
         </div>
     </div>
 </div>

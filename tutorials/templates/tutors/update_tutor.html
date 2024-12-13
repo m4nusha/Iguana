@@ -1,0 +1,21 @@
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm p-4">
+    <h1 class="text-primary mb-4">Update Tutor Information</h1>
+    <form action="{% url 'update_tutor' tutor.id %}" method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="d-flex justify-content-between mt-3">
+        <button type="submit" class="btn btn-success">
+          <i class="bi bi-check-circle"></i> Update
+        </button>
+        <a href="{% url 'tutors_list' %}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left"></i> Back to Tutors List
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
