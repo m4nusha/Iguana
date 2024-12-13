@@ -10,21 +10,12 @@ from django.views.generic.edit import FormView, UpdateView, DeleteView
 from django.urls import reverse, reverse_lazy
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
-from .models import Booking, Session, User
-from .forms import BookingForm, SessionForm, CreateUserForm, UserForm
+from .models import Booking, Session, User, Student, StudentRequest, Tutor, Subject
+from .forms import BookingForm, SessionForm, UserForm, StudentForm,StudentRequestForm, TutorForm
 from django.shortcuts import get_object_or_404
-from django.db.models import Value, F, CharField
-from django.db.models.functions import Concat
+from django.db.models import F, Q
+from django.http import HttpResponseRedirect,Http404
 
-
-from .models import Student,StudentRequest
-from .forms import StudentForm,StudentRequestForm
-from django.http import HttpResponse, HttpResponseRedirect,Http404
-
-from .models import Tutor, Subject
-from .forms import TutorForm
-from django.http import HttpResponse, HttpResponseRedirect, Http404
-from tutorials import views
 
 
 @login_required
@@ -178,8 +169,8 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
 
 def populate():
+    """Used in user_list, tutor_list, and student_list to ensure they are populated."""
     users = User.objects.all()
-    # Ensure associated Student/Tutor records exist for all users
     for user in users:
         if user.user_type == 'student' and not Student.objects.filter(username=user).exists():
             Student.objects.get_or_create(
@@ -189,12 +180,14 @@ def populate():
             Tutor.objects.get_or_create(
                 username=user, defaults={'name': user.full_name, 'email': user.email.lower()}
             )
-            
+ 
+"""User page"""           
 @login_required
 def users_list(request):
-    user_type_filter = request.GET.get('user_type')  # Filter by user type
-    order_by = request.GET.get('order_by')  # Order by name
-    search_query = request.GET.get('search', '')  # Search by name, second attribute is to set the search to empty instead of None
+    """Display a list of all users with filtering, sorting, and searching options."""
+    user_type_filter = request.GET.get('user_type')  
+    order_by = request.GET.get('order_by')  
+    search_query = request.GET.get('search', '')  
 
     users = User.objects.all()
     populate()
@@ -216,15 +209,13 @@ def users_list(request):
         
     
             
-    return render(request, 'users_list.html', {
+    return render(request, 'users/users_list.html', {
         'users': users,
         'user_type_filter': user_type_filter,
         'order_by': order_by,
         'search_query': search_query,
     })
-    
-    
-
+     
 @login_required
 def edit_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -235,9 +226,7 @@ def edit_user(request, user_id):
             return redirect('users_list')
     else:
         form = UserForm(instance=user)
-    return render(request, 'edit_users_type.html', {'form': form, 'user': user})
-
-
+    return render(request, 'users/edit_users_type.html', {'form': form, 'user': user})
 
 @login_required
 def create_user(request):
@@ -248,11 +237,14 @@ def create_user(request):
             return redirect('users_list')
     else:
         form = UserForm()
-    return render(request, 'create_user.html', {'form': form})
+    return render(request, 'users/create_user.html', {'form': form})
 
+
+"""Student page"""
+@login_required
 def students_list(request):
     """Display a list of all students with filtering, sorting, and searching options."""
-    # Get filter and search parameters from the request
+    
     allocated = request.GET.get('allocated')  # Filter for allocation status
     payment = request.GET.get('payment')  # Filter for payment status
     order = request.GET.get('order')  # Order by name
@@ -260,7 +252,7 @@ def students_list(request):
 
     # Start with all students
     students = Student.objects.all()
-    #populate()
+    populate()
     # Apply filtering by allocated
     if allocated == 'true':
         students = students.filter(allocated=True)
@@ -289,8 +281,9 @@ def students_list(request):
         'search_query': search_query,
         'payment_choices': Student.PAYMENT_CHOICES,  # Pass payment choices to the template
     }
-    return render(request, 'students_list.html', context)
+    return render(request, 'students/students_list.html', context)
 
+@login_required
 def show_student(request, student_id):
     """Display further info on a student"""
     try:
@@ -298,9 +291,11 @@ def show_student(request, student_id):
     except Student.DoesNotExist:
         raise Http404(f"Could not find a student with primary key {student_id}")
     else:
-        return render(request, 'show_student.html', context)
-
+        return render(request, 'students/show_student.html', context)
+    
+@login_required
 def update_student(request,student_id):
+    """Update student info"""
     try:
         student = Student.objects.get(id=student_id)
     except Student.DoesNotExist:
@@ -314,38 +309,13 @@ def update_student(request,student_id):
                 except Exception as e:
                     form.add_error(None, f"It was not possible to save this student to the database, {e}")
                 else:
-                    path = reverse('students')  # go to list of students
+                    path = reverse('students_list')  # go to list of students
                     return HttpResponseRedirect(path)
         else:
             form = StudentForm(instance=student)
-        return render(request,'update_student.html', {'form':form, 'student':student})
-"""
+        return render(request,'students/update_student.html', {'form':form, 'student':student})
 
-def update_student(request, student_id):
-    try:
-        student = Student.objects.get(id=student_id)
-    except Student.DoesNotExist:
-        raise Http404(f"Could not find a student with primary key {student_id}")
-    else:
-        if request.method == "POST":
-            form = StudentForm(request.POST, instance=student)
-
-            if form.is_valid():
-                form.save()
-                path = reverse('students')  # go to list of students
-                return HttpResponseRedirect(path)
-            else:
-                # If form is not valid, print out form errors for debugging
-                print(form.errors)
-                # Optionally, you can return the form with error messages for the user
-                return render(request, 'update_student.html', {'form': form, 'student': student})
-
-        else:
-            form = StudentForm(instance=student)
-
-        return render(request, 'update_student.html', {'form': form, 'student': student})
-"""
-
+@login_required
 def delete_student(request,student_id):
     try:
         student = Student.objects.get(id=student_id)
@@ -355,17 +325,18 @@ def delete_student(request,student_id):
     if request.method == "POST":
             # If the user confirmed deletion, delete the student and redirect
         student.delete()
-        path = reverse('students')  # go to list of students
+        path = reverse('students_list')  # go to list of students
         return HttpResponseRedirect(path)
     else:
             # If request is GET, show confirmation page
         context = f'Are you sure you want to delete the following student: "{student.name}".'
-        return render(request,'delete_student.html', {'context': context,'student':student})
+        return render(request,'students/delete_student.html', {'context': context,'student':student})
 
+
+"""Student requests page"""
+@login_required
 def student_requests(request):
-    """
-    Display a list of all student requests with filtering, search, and sorting options.
-    """
+    """Display a list of all student requests with filtering, search, and sorting options."""
     # Get filter parameters from the query string
     status_filter = request.GET.get('status', '')
     priority_filter = request.GET.get('priority', '')
@@ -403,24 +374,21 @@ def student_requests(request):
         'priorities': [choice[0] for choice in StudentRequest._meta.get_field('priority').choices],
         'request_types': [choice[0] for choice in StudentRequest._meta.get_field('request_type').choices],
     }
-    return render(request, 'student_requests.html', context)
+    return render(request, 'students_requests/student_requests.html', context)
 
+@login_required
 def show_request(request, request_id):
-    """
-    Display further information on a student request.
-    """
+    """Display further information on a student request."""
     try:
         context = {'student_request': StudentRequest.objects.get(id=request_id)}
     except StudentRequest.DoesNotExist:
         raise Http404(f"Could not find a request with primary key {request_id}")
     else:
-        return render(request, 'show_request.html', context)
+        return render(request, 'students_requests/show_request.html', context)
 
-
+@login_required
 def create_request(request):
-    """
-    Create a new student request and save it to the database.
-    """
+    """Create a new student request and save it to the database."""
     if request.method == "POST":
         form = StudentRequestForm(request.POST)
         if form.is_valid():
@@ -434,13 +402,11 @@ def create_request(request):
     else:
         form = StudentRequestForm()
 
-    return render(request, 'create_request.html', {'form': form})
+    return render(request, 'students_requests/create_request.html', {'form': form})
 
-
+@login_required
 def update_request(request, request_id):
-    """
-    Update an existing student request in the database.
-    """
+    """Update an existing student request in the database."""
     try:
         student_request = StudentRequest.objects.get(id=request_id)
     except StudentRequest.DoesNotExist:
@@ -459,13 +425,11 @@ def update_request(request, request_id):
         else:
             form = StudentRequestForm(instance=student_request)
 
-        return render(request, 'update_request.html', {'form': form, 'student_request': student_request})
+        return render(request, 'students_requests/update_request.html', {'form': form, 'student_request': student_request})
 
-
+@login_required
 def delete_request(request, request_id):
-    """
-    Delete a student request from the database.
-    """
+    """Delete a student request from the database."""
     try:
         student_request = StudentRequest.objects.get(id=request_id)
     except StudentRequest.DoesNotExist:
@@ -479,8 +443,10 @@ def delete_request(request, request_id):
     else:
         # If request is GET, show confirmation page
         context = f'Are you sure you want to delete the following request: "{student_request}"?'
-        return render(request, 'delete_request.html', {'context': context, 'student_request': student_request})
+        return render(request, 'students_requests/delete_request.html', {'context': context, 'student_request': student_request})
 
+
+"""Booking page"""
 @login_required
 def bookings_list(request):
     """Display a list of all bookings with filtering, ordering, and searching options."""
@@ -494,19 +460,6 @@ def bookings_list(request):
     bookings = Booking.objects.annotate(
         student_name=F('student__name'),
         tutor_name=F('tutor__name')
-        # raghad's version if we need it
-        # student_full_name=Concat(
-        #     F('student__first_name'),
-        #     Value(' '),
-        #     F('student__last_name'),
-        #     output_field=CharField()
-        # ),
-        # tutor_full_name=Concat(
-        #     F('tutor__first_name'),
-        #     Value(' '),
-        #     F('tutor__last_name'),
-        #     output_field=CharField()
-        # )
     )
 
 
@@ -581,18 +534,15 @@ def booking_delete(request, pk):
         booking.delete()
         return redirect('booking_list')
     return render(request, 'bookings/booking_delete.html', {'booking': booking})
-#for tests only
-def welcome(request):
-    """Render the inside welcome page."""
-    return render(request, 'welcome.html')
 
+@login_required
 def booking_detail(request, pk):
     """Show details of a specific booking."""
     booking = get_object_or_404(Booking, pk=pk)
     return render(request, 'bookings/booking_show.html', {'booking': booking})
 
-from django.db.models import Q
 
+@login_required
 def booking_show(request, booking_id):
     """List all sessions for a specific booking with filtering and ordering."""
     booking = get_object_or_404(Booking, id=booking_id)
@@ -638,7 +588,8 @@ def booking_show(request, booking_id):
         },
     )
 
-
+"""Session page"""
+@login_required
 def session_create(request, booking_id):
     """Create a new session for a specific booking."""
     booking = get_object_or_404(Booking, id=booking_id)  # Get the booking instance
@@ -654,35 +605,45 @@ def session_create(request, booking_id):
         # Prepopulate the booking field
         form = SessionForm(initial={'booking': booking})
 
-    return render(request, 'bookings/sessions/session_create.html', {'form': form, 'booking': booking})
+    return render(request, 'sessions/session_create.html', {'form': form, 'booking': booking})
 
+@login_required
 def session_show(request, pk):
     """Show details of a specific session."""
     session = get_object_or_404(Session, pk=pk)
-    return render(request, 'bookings/sessions/session_show.html', {'session': session})
+    return render(request, 'sessions/session_show.html', {'session': session})
 
-class SessionUpdateView(UpdateView):
+@login_required
+def session_update(request, pk):
     """Update a specific session."""
-    model = Session
-    fields = ['session_date', 'session_time', 'duration', 'venue', 'payment_status']
-    template_name = 'bookings/sessions/session_update.html'
+    session = get_object_or_404(Session, pk=pk)  # Fetch the session or return 404
 
-    def get_success_url(self):
-        # Use the booking ID of the related session
-        return reverse_lazy('session_list', kwargs={'booking_id': self.object.booking.id})
+    if request.method == 'POST':
+        form = SessionForm(request.POST, instance=session)  # Bind data to the form
+        if form.is_valid():
+            form.save()  # Save the session
+            return redirect('session_list', booking_id=session.booking.id)  # Redirect to booking details
+    else:
+        form = SessionForm(instance=session)  # Populate the form with session data
 
+    return render(request, 'sessions/session_update.html', {'form': form, 'session': session})
 
-class SessionDeleteView(DeleteView):
+@login_required
+def session_delete(request, pk):
     """Delete a specific session."""
-    model = Session
-    template_name = 'bookings/sessions/session_delete.html'
+    session = get_object_or_404(Session, pk=pk)  # Fetch the session or return 404
 
-    def get_success_url(self):
-        # Use the booking ID of the related session
-        return reverse_lazy('session_list', kwargs={'booking_id': self.object.booking.id})
+    if request.method == 'POST':
+        booking_id = session.booking.id  # Get the booking ID before deleting
+        session.delete()  # Delete the session
+        return redirect('session_list', booking_id=booking_id)  # Redirect to booking details
+
+    return render(request, 'sessions/session_delete.html', {'session': session})
 
 
-def list_tutors(request):
+"""Tutor page"""
+@login_required
+def tutors_list(request):
     """Display a list of all tutors."""
     subjects = [
         'Python', 'Java', 'Javascript', 'React',
@@ -716,15 +677,15 @@ def list_tutors(request):
     #get all subjects for the filter dropdown
     all_subjects = Subject.objects.all()
     subject_choices = [(subject.id, subject.name) for subject in all_subjects]
-    return render(request, 'list_tutors.html', {
+    return render(request, 'tutors/tutors_list.html', {
         'tutors': tutors,
         'subject_choices': subject_choices,
-        'current_order': order,  #pass current order for UI feedback
-        'search_query': search_query,  #pass search query for UI feedback
-        'current_subject': subject_filter, #pass the selected subject for UI feedback
+        'current_order': order,  
+        'search_query': search_query,  
+        'current_subject': subject_filter,
     })
 
-
+@login_required
 def show_tutor(request, tutor_id):
     """Display further info on a tutor"""
 
@@ -733,27 +694,27 @@ def show_tutor(request, tutor_id):
     except Tutor.DoesNotExist:
         raise Http404(f"Could not find a tutor with primary key {tutor_id}")
     
-    #pass tutor's subjects to the template
+    
     subjects = tutor.subjects.all()
 
-    return render (request, 'show_tutor.html', {
+    return render (request, 'tutors/show_tutor.html', {
         'tutor': tutor,
         'subjects': subjects
     })
 
-
+@login_required
 def update_tutor(request,tutor_id):
     tutor = get_object_or_404(Tutor, id=tutor_id)
     if request.method == 'POST':
-        form = TutorForm(request.POST, instance=tutor)  # Ensure the form is instantiated with POST data and the tutor instance
+        form = TutorForm(request.POST, instance=tutor) 
         if form.is_valid(): 
             form.save()  
-            return redirect('tutors')  # Redirect after successful update
+            return redirect('tutors_list')  
     else:
-        form = TutorForm(instance=tutor)  # Instantiate the form with the existing tutor data
-    return render(request, 'update_tutor.html', {'form': form, 'tutor': tutor})
+        form = TutorForm(instance=tutor)  
+    return render(request, 'tutors/update_tutor.html', {'form': form, 'tutor': tutor})
 
-
+@login_required
 def delete_tutor(request,tutor_id):
     try:
         tutor = Tutor.objects.get(id=tutor_id)
@@ -761,12 +722,10 @@ def delete_tutor(request,tutor_id):
         raise Http404(f"Could not find a tutor with primary key {tutor_id}")
 
     if request.method == "POST":
-            # If the user confirmed deletion, delete the tutor and redirect
         tutor.delete()
-        path = reverse('tutors')  # go to list of tutors
+        path = reverse('tutors_list')  
         return HttpResponseRedirect(path)
     else:
-            # If request is GET, show confirmation page
         context = f'Are you sure you want to delete the following tutor: "{tutor.name}".'
-        return render(request,'delete_tutor.html', {'context': context,'tutor':tutor})
+        return render(request,'tutors/delete_tutor.html', {'context': context,'tutor':tutor})
     
