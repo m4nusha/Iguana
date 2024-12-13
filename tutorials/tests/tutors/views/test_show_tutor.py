@@ -14,6 +14,7 @@ class ShowTutorTestCase(TestCase):
             email="janedoe@example.com",
             password="password123",
         )
+        self.client.login(username="@janedoe", password="password123")
 
         self.tutor = Tutor.objects.create(
             name="Jane Doe",

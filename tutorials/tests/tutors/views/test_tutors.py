@@ -13,12 +13,18 @@ class TutorsViewTestCase(TestCase):
             username="@janedoe",
             email="janedoe@example.com",
             password="password123",
+            user_type='not specified',
         )
+        self.client.login(username="@janedoe", password="password123")
+
         self.user2 = User.objects.create_user(
             username="@johnsmith",
             email="johnsmith@example.com",
             password="password123",
+            user_type='not specified',
         )
+        self.client.login(username="@johnsmith", password="password123")
+
 
         self.tutor1 = Tutor.objects.create(
             name="Jane Doe",
@@ -37,7 +43,8 @@ class TutorsViewTestCase(TestCase):
         self.tutor1.subjects.add(self.python_subject)
         self.tutor1.subjects.add(self.java_subject)
         self.tutor2.subjects.add(self.java_subject)
-        self.url = reverse('tutors_list')  #URL for the tutors view
+
+        self.url = reverse('tutors_list')  # URL for the tutors view
 
     def test_tutors_url(self):
         """Ensure the URL for the tutors view resolves correctly."""

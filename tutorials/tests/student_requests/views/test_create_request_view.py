@@ -6,10 +6,12 @@ from tutorials.models import StudentRequest, User
 class CreateRequestTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            username='johndoe',
-            email='johndoe@example.com',
+            username='@janedoe',
+            email='janedoe@example.com',
             password='password123'
         )
+        self.client.login(username="@janedoe", password="password123")
+
         self.url = reverse('create_request')  # URL for the create_request view
         self.form_input = {
             'username': self.user.id,
@@ -27,7 +29,7 @@ class CreateRequestTestCase(TestCase):
         """Test the GET request to render the create request form."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'create_request.html')
+        self.assertTemplateUsed(response, 'students_requests/create_request.html')
         self.assertIn('form', response.context)
         form = response.context['form']
         self.assertTrue(isinstance(form, StudentRequestForm))
@@ -52,7 +54,7 @@ class CreateRequestTestCase(TestCase):
         after_count = StudentRequest.objects.count()
         self.assertEqual(after_count, before_count)  # No new request should be added
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'create_request.html')
+        self.assertTemplateUsed(response, 'students_requests/create_request.html')
         self.assertIn('form', response.context)
         form = response.context['form']
         self.assertTrue(isinstance(form, StudentRequestForm))
@@ -63,7 +65,7 @@ class CreateRequestTestCase(TestCase):
         """Test the POST request with a duplicate request type for the same user."""
         # Create an existing request with the same type
         StudentRequest.objects.create(
-            name="John Doe",
+            name="Jane Doe",
             username=self.user,
             request_type='profile_update',
             description='Existing request.',
@@ -75,7 +77,7 @@ class CreateRequestTestCase(TestCase):
         after_count = StudentRequest.objects.count()
         self.assertEqual(after_count, before_count)  # No new request should be added
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'create_request.html')
+        self.assertTemplateUsed(response, 'students_requests/create_request.html')
         self.assertIn('form', response.context)
         form = response.context['form']
         self.assertTrue(isinstance(form, StudentRequestForm))

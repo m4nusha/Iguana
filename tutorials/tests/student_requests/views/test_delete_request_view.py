@@ -11,11 +11,14 @@ class DeleteStudentTestCase(TestCase):
     
     def setUp(self):
         # Set up a test user and student instance
-        self.user = User.objects.create_user(username='testuser', password='12345')
+        self.user = User.objects.create_user(username='@testuser', password='password123', user_type = 'not specified')
+
+        self.client.login(username="@testuser", password="password123")
+
         self.student = Student.objects.create(
-            name="John Doe",
+            name="Jane Doe",
             username=self.user,
-            email="john.doe@example.com",
+            email="jane.doe@example.com",
             allocated=True,
             payment='Pending',
         )
@@ -30,7 +33,7 @@ class DeleteStudentTestCase(TestCase):
         self.client.login(username='testuser', password='12345')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'delete_student.html')
+        self.assertTemplateUsed(response, 'students/delete_student.html')
 
     def test_get_delete_student_with_invalid_id(self):
         """Test the GET request with an invalid student ID."""
@@ -47,7 +50,7 @@ class DeleteStudentTestCase(TestCase):
         response = self.client.post(self.url, follow=True)
         after_count = Student.objects.count()
         self.assertEqual(after_count, before_count - 1)
-        expected_redirect_url = reverse('students')
+        expected_redirect_url = reverse('students_list')
         self.assertRedirects(response, expected_redirect_url, status_code=302, target_status_code=200)
         with self.assertRaises(Student.DoesNotExist):
             Student.objects.get(pk=student_id)

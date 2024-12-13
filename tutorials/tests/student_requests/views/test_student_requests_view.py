@@ -6,14 +6,16 @@ class StudentRequestsTestCase(TestCase):
     def setUp(self):
         # Create a test user
         self.user = User.objects.create_user(
-            username='johndoe',
-            email='johndoe@example.com',
-            password='password123'
+            username="@janedoe",
+            email="janedoe@example.com",
+            password="password123",
+            user_type="student"
         )
+        self.client.login(username="@janedoe", password="password123")
 
         # Create test StudentRequest instances
         self.request1 = StudentRequest.objects.create(
-            name="John Doe",
+            name="Jane Doe",
             username=self.user,
             request_type="profile_update",
             description="Update my profile picture.",
@@ -47,7 +49,7 @@ class StudentRequestsTestCase(TestCase):
         """Test the GET request to display all student requests."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "student_requests.html")
+        self.assertTemplateUsed(response, "students_requests/student_requests.html")
         self.assertIn("requests", response.context)
         requests = response.context["requests"]
         self.assertEqual(requests.count(), 3)  # Ensure all requests are in the context
@@ -75,23 +77,23 @@ class StudentRequestsTestCase(TestCase):
 
     def test_search_by_name(self):
         """Test searching for requests by name."""
-        response = self.client.get(self.url, {"search": "Jane"})
+        response = self.client.get(self.url, {"search": "Alice"})
         requests = response.context["requests"]
-        self.assertEqual(requests.count(), 1)  # Only the request with "Jane" in the name
-        self.assertEqual(requests[0].name, "Jane Smith")
+        self.assertEqual(requests.count(), 1)  # Only the request with "Alice" in the name
+        self.assertEqual(requests[0].name, "Alice Johnson")
 
     def test_sort_by_name_ascending(self):
         """Test sorting requests by name in ascending order."""
         response = self.client.get(self.url, {"order_by": "asc"})
         requests = response.context["requests"]
         self.assertEqual(requests[0].name, "Alice Johnson")  # A-Z order
-        self.assertEqual(requests[1].name, "Jane Smith")
-        self.assertEqual(requests[2].name, "John Doe")
+        self.assertEqual(requests[1].name, "Jane Doe")
+        self.assertEqual(requests[2].name, "Jane Smith")
 
     def test_sort_by_name_descending(self):
         """Test sorting requests by name in descending order."""
         response = self.client.get(self.url, {"order_by": "desc"})
         requests = response.context["requests"]
-        self.assertEqual(requests[0].name, "John Doe")  # Z-A order
-        self.assertEqual(requests[1].name, "Jane Smith")
+        self.assertEqual(requests[0].name, "Jane Smith")  # Z-A order
+        self.assertEqual(requests[1].name, "Jane Doe")
         self.assertEqual(requests[2].name, "Alice Johnson")

@@ -9,7 +9,10 @@ class UpdateStudentViewTest(TestCase):
     def setUp(self):
         # Create a user and a student for testing
         self.user = User.objects.create_user(
-            username='@testuser', first_name='Test', last_name='User', email='testuser@example.com', user_type='not specified')
+            username='@testuser', first_name='Test', last_name='User',password="password123" ,email='testuser@example.com', user_type='not specified')
+
+        self.client.login(username="@testuser", password="password123")
+
         self.student = Student.objects.create(
             name="Old Name", username=self.user, email="oldemail@example.com")
         self.url = reverse('update_student', args=[self.student.id])
@@ -29,7 +32,7 @@ class UpdateStudentViewTest(TestCase):
         self.student.refresh_from_db()
         self.assertEqual(self.student.name, 'Updated Name')
         self.assertEqual(self.student.email, 'updatedemail@example.com')
-        self.assertRedirects(response, reverse('students'))
+        self.assertRedirects(response, reverse('students_list'))
 
     def test_student_not_found(self):
         """Test that a 404 error is returned if the student does not exist."""

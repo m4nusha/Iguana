@@ -6,14 +6,17 @@ class ShowRequestTestCase(TestCase):
     def setUp(self):
         # Create a test user
         self.user = User.objects.create_user(
-            username="@johndoe",
+            username="@janedoe",
             email="johndoe@example.com",
-            password="password123"
+            password="password123",
+            user_type='not specified',
         )
+
+        self.client.login(username="@janedoe", password="password123")
 
         # Create a test StudentRequest instance
         self.student_request = StudentRequest.objects.create(
-            name="John Doe",
+            name="Jane Doe",
             username=self.user,
             request_type="profile_update",
             description="Update my profile picture.",
@@ -32,7 +35,7 @@ class ShowRequestTestCase(TestCase):
         """Test the GET request for a valid student request."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'show_request.html')
+        self.assertTemplateUsed(response, 'students_requests/show_request.html')
         self.assertIn('student_request', response.context)
         student_request = response.context['student_request']
         self.assertEqual(student_request.id, self.student_request.id)  # Ensure the correct request is passed

@@ -9,14 +9,14 @@ INVALID_TUTOR_ID = 0
 
 class UpdateTutorTestCase(TestCase):
     def setUp(self):
-
-        #create a User instance
+        # Create a User instance
         self.user = User.objects.create_user(
             username="@janedoe",
             email="janedoe@example.com",
             password="password123",
             user_type="not specified"
         )
+        self.client.login(username="@janedoe", password="password123")
 
         #create a Tutor instance referencing the User instance
         self.tutor = Tutor.objects.create(
@@ -77,6 +77,7 @@ class UpdateTutorTestCase(TestCase):
 
         #verify redirection
         expected_redirect_url = reverse('tutors_list') 
+
         self.assertRedirects(response, expected_redirect_url, status_code=302, target_status_code=200)
 
         #verify updated student fields
@@ -126,6 +127,7 @@ class UpdateTutorTestCase(TestCase):
             password="password123",
             user_type="not specified"
         )
+        self.client.login(username="@johnsmith", password="password123")
 
         #create a Tutor instance for user1
         self.tutor1 = Tutor.objects.create(
