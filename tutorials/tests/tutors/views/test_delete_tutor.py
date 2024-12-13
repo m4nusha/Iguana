@@ -34,8 +34,7 @@ class DeleteTutorTestCase(TestCase):
         self.assertEqual(self.url, f'/tutors/{self.tutor.id}/delete/')
 
     def test_post_delete_tutor(self):
-        #log in the test client
-        self.client.login(username="@janedoe", password="password123")
+        self.client.login(username='@janedoe', password='password123')
         before_count = Tutor.objects.count()
         response = self.client.post(self.url, follow=True)
         after_count = Tutor.objects.count()
