@@ -26,3 +26,16 @@ class HomeViewTestCase(TestCase):
         redirect_url = reverse('dashboard')
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
         self.assertTemplateUsed(response, 'dashboard.html')
+
+    def test_welcome_page_renders_correct_template(self):
+        self.client.login(username=self.user.username, password="Password123")
+        url = reverse('dashboard')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'dashboard.html')
+
+    def test_welcome_page_redirects_if_not_logged_in(self):
+        url = reverse('dashboard')
+        response = self.client.get(url)
+        expected_redirect_url = f"{reverse('log_in')}?next={url}"
+        self.assertRedirects(response, expected_redirect_url, status_code=302, target_status_code=200)

@@ -225,7 +225,6 @@ def users_list(request):
     
     
 
-
 @login_required
 def edit_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
