@@ -2,8 +2,6 @@ from django.test import TestCase
 from django.urls import reverse
 from tutorials.models import Tutor,User,Subject
 from decimal import Decimal
-from django.http import Http404
-from django.db import transaction
 from tutorials.forms import TutorForm
 
 

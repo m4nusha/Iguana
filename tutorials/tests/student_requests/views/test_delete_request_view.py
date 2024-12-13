@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
-from tutorials.models import Student, User
+from tutorials.models import Student, StudentRequest, User
+from tutorials.tests.student_requests.views.test_update_request_view import INVALID_REQUEST_ID
 
 INVALID_STUDENT_ID = 0
 
@@ -52,4 +53,22 @@ class DeleteStudentTestCase(TestCase):
         response = self.client.post(invalid_url, follow=True)
         after_count = Student.objects.count()
         self.assertEqual(after_count, before_count)
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_delete_request_with_invalid_id(self):
+        invalid_url = reverse('delete_request', kwargs={'request_id': INVALID_REQUEST_ID})
+        response = self.client.get(invalid_url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_post_delete_request_with_invalid_id(self):
+        invalid_url = reverse('delete_request', kwargs={'request_id': INVALID_REQUEST_ID})
+        before_count = StudentRequest.objects.count()
+        response = self.client.post(invalid_url, follow=True)
+        after_count = StudentRequest.objects.count()
+        self.assertEqual(after_count, before_count)
+        self.assertEqual(response.status_code, 404)
+
+    def test_delete_request_with_invalid_request_id(self):
+        invalid_url = reverse('delete_request', kwargs={'request_id': INVALID_REQUEST_ID})
+        response = self.client.get(invalid_url)
         self.assertEqual(response.status_code, 404)
