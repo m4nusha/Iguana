@@ -32,7 +32,7 @@ urlpatterns = [
     path('profile/', views.ProfileUpdateView.as_view(), name='profile'),
     path('sign_up/', views.SignUpView.as_view(), name='sign_up'),
 
-    #tutor add-ons
+    #Tutor add-ons
     path('tutors/',views.tutors_list, name='tutors_list'),
     path('tutors/<int:tutor_id>/',views.show_tutor, name='show_tutor'),
     path('tutors/<int:tutor_id>/edit/', views.update_tutor, name='update_tutor'),

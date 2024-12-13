@@ -650,15 +650,14 @@ def tutors_list(request):
         'Ruby', 'Go', 'HTML/CSS', 'C', 'Scala'
     ]
     for subject in subjects:
-        Subject.objects.get_or_create(name=subject)
+        Subject.objects.get_or_create(name = subject)
         
-    subject_filter = request.GET.get('subject')  # Get the subject filter
-    order = request.GET.get('order')  # Get the order filter
-    search_query = request.GET.get('search')  # Get the search query
+    subject_filter = request.GET.get('subject')  #gets the subject filter
+    order = request.GET.get('order')  #gets the order filter
+    search_query = request.GET.get('search')  #gets the search query
     
     tutors = Tutor.objects.all()
     populate()
-
 
     #filter tutors by subject if provided
     if subject_filter:
@@ -728,4 +727,5 @@ def delete_tutor(request,tutor_id):
     else:
         context = f'Are you sure you want to delete the following tutor: "{tutor.name}".'
         return render(request,'tutors/delete_tutor.html', {'context': context,'tutor':tutor})
+    
     
