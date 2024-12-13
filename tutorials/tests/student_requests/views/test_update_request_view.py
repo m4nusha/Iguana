@@ -9,14 +9,17 @@ class UpdateRequestTestCase(TestCase):
     def setUp(self):
         # Create a test user
         self.user = User.objects.create_user(
-            username="@johndoe",
-            email="johndoe@example.com",
-            password="password123"
+            username="@janedoe",
+            email="janedoe@example.com",
+            password="password123",
+            user_type= 'not specified'
         )
+
+        self.client.login(username="@janedoe", password="password123")
 
         # Create a test StudentRequest instance
         self.student_request = StudentRequest.objects.create(
-            name="John Doe",
+            name="Jane Doe",
             username=self.user,
             request_type="profile_update",
             description="Update my profile picture.",
@@ -44,7 +47,7 @@ class UpdateRequestTestCase(TestCase):
         """Test the GET request to edit a student request."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'update_request.html')
+        self.assertTemplateUsed(response, 'students_requests/update_request.html')
         self.assertIn('form', response.context)
         form = response.context['form']
         self.assertTrue(isinstance(form, StudentRequestForm))
@@ -79,7 +82,7 @@ class UpdateRequestTestCase(TestCase):
         after_count = StudentRequest.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'update_request.html')
+        self.assertTemplateUsed(response, 'students_requests/update_request.html')
         self.assertIn('form', response.context)
         form = response.context['form']
         self.assertTrue(isinstance(form, StudentRequestForm))
@@ -90,7 +93,7 @@ class UpdateRequestTestCase(TestCase):
         """Test the POST request with a duplicate request_type for the same user."""
         # Create another request with the same type
         StudentRequest.objects.create(
-            name="John Doe",
+            name="Jane Doe",
             username=self.user,
             request_type="password_reset",
             description="Another request.",
@@ -102,7 +105,7 @@ class UpdateRequestTestCase(TestCase):
         after_count = StudentRequest.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'update_request.html')
+        self.assertTemplateUsed(response, 'students_requests/update_request.html')
         self.assertIn('form', response.context)
         form = response.context['form']
         self.assertTrue(isinstance(form, StudentRequestForm))

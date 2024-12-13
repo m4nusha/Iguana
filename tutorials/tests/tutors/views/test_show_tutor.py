@@ -14,6 +14,7 @@ class ShowTutorTestCase(TestCase):
             email="janedoe@example.com",
             password="password123",
         )
+        self.client.login(username="@janedoe", password="password123")
 
         self.tutor = Tutor.objects.create(
             name="Jane Doe",
@@ -33,7 +34,7 @@ class ShowTutorTestCase(TestCase):
         """Ensure a valid tutor ID returns the correct response and context."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'show_tutor.html')
+        self.assertTemplateUsed(response, 'tutors/show_tutor.html')
         self.assertIn('tutor', response.context)
         tutor = response.context['tutor']
         

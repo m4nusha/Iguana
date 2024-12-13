@@ -316,21 +316,20 @@ def update_student(request,student_id):
         return render(request,'students/update_student.html', {'form':form, 'student':student})
 
 @login_required
-def delete_student(request,student_id):
+def delete_student(request, student_id):
     try:
         student = Student.objects.get(id=student_id)
+        if student.username != request.user:  # Ownership check
+            return HttpResponseRedirect(reverse('students_list'))
     except Student.DoesNotExist:
         raise Http404(f"Could not find a student with primary key {student_id}")
 
     if request.method == "POST":
-            # If the user confirmed deletion, delete the student and redirect
         student.delete()
-        path = reverse('students_list')  # go to list of students
-        return HttpResponseRedirect(path)
+        return HttpResponseRedirect(reverse('students_list'))
     else:
-            # If request is GET, show confirmation page
         context = f'Are you sure you want to delete the following student: "{student.name}".'
-        return render(request,'students/delete_student.html', {'context': context,'student':student})
+        return render(request, 'students/delete_student.html', {'context': context, 'student': student})
 
 
 """Student requests page"""

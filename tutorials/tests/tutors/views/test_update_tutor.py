@@ -9,28 +9,6 @@ INVALID_TUTOR_ID = 0
 
 class UpdateTutorTestCase(TestCase):
     def setUp(self):
-        # self.python_subject, created = Subject.objects.get_or_create(name = "Python")
-        # self.java_subject, created = Subject.objects.get_or_create(name = "Java")
-        
-        # # Create User instances for testing
-        # self.user1 = User.objects.create_user(
-        #     username="@janedoe",
-        #     email="janedoe@example.com",
-        #     password="password123",
-        # )
-
-        # self.tutor = Tutor.objects.create(
-        #     name="Jane Doe",
-        #     username=self.user1,
-        #     email="janedoe@example.com",
-        #     rate = Decimal("25.50")
-        # )
-        # self.tutor.subjects.add(self.python_subject)
-        # self.tutor.subjects.add(self.java_subject)
-
-
-
-
         # Create a User instance
         self.user = User.objects.create_user(
             username="@janedoe",
@@ -38,6 +16,7 @@ class UpdateTutorTestCase(TestCase):
             password="password123",
             user_type="not specified"
         )
+        self.client.login(username="@janedoe", password="password123")
 
         # Create a Tutor instance referencing the User instance
         self.tutor = Tutor.objects.create(
@@ -66,7 +45,7 @@ class UpdateTutorTestCase(TestCase):
     def test_get_update_tutor(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'update_tutor.html')
+        self.assertTemplateUsed(response, 'tutors/update_tutor.html')
         self.assertIn('form', response.context)
         form = response.context['form']
         self.assertTrue(isinstance(form, TutorForm))
@@ -89,7 +68,7 @@ class UpdateTutorTestCase(TestCase):
         self.assertEqual(after_count, before_count)  # Ensure no new student was created
 
         # Verify redirection
-        expected_redirect_url = reverse('tutors')  # Redirect to student list page
+        expected_redirect_url = reverse('tutors_list')  # Redirect to student list page
         self.assertRedirects(response, expected_redirect_url, status_code=302, target_status_code=200)
 
         # Verify updated student fields
@@ -118,26 +97,12 @@ class UpdateTutorTestCase(TestCase):
         after_count = Tutor.objects.count()
         self.assertEqual(after_count, before_count)  # No new tutor added
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'update_tutor.html')
+        self.assertTemplateUsed(response, 'tutors/update_tutor.html')
         self.assertIn('form', response.context)
         form = response.context['form']
         self.assertTrue(isinstance(form, TutorForm))
         self.assertTrue(form.is_bound)
 
-
-        # invalid_data = self.new_data.copy()
-        # invalid_data['email'] = ""  #invalid email as empty
-
-        # response = self.client.post(self.url, invalid_data)
-        # self.assertEqual(response.status_code, 200)  #form redisplays with errors
-        # self.assertTemplateUsed(response, 'update_tutor.html')
-        # self.assertIn('form', response.context)
-        # form = response.context['form']
-        # self.assertFalse(form.is_valid())  #form should not be valid
-
-        # #ensure the tutor instance is not updated
-        # self.tutor.refresh_from_db()
-        # self.assertNotEqual(self.tutor.email, invalid_data['email'])
 
     def test_post_with_non_unique_email(self):
         """Test updating a tutor with a non-unique email address."""
@@ -148,6 +113,7 @@ class UpdateTutorTestCase(TestCase):
             password="password123",
             user_type="not specified"
         )
+        self.client.login(username="@johnsmith", password="password123")
 
         # Create a Tutor instance for user1
         self.tutor1 = Tutor.objects.create(
@@ -163,7 +129,7 @@ class UpdateTutorTestCase(TestCase):
 
         self.assertEqual(after_count, before_count)  # No new tutor should be added
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'update_tutor.html')
+        self.assertTemplateUsed(response, 'tutors/update_tutor.html')
         self.assertIn('form', response.context)
         form = response.context['form']
         self.assertTrue(isinstance(form, TutorForm))
