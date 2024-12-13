@@ -13,6 +13,7 @@ class ShowTutorTestCase(TestCase):
             username="@janedoe",
             email="janedoe@example.com",
             password="password123",
+            user_type="tutor"
         )
         self.client.login(username="@janedoe", password="password123")
 

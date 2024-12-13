@@ -5,46 +5,67 @@ from decimal import Decimal
 
 class TutorsViewTestCase(TestCase):
     def setUp(self):
-        self.python_subject, created = Subject.objects.get_or_create(name = "Python")
-        self.java_subject, created = Subject.objects.get_or_create(name = "Java")
+        #Create Subject instances
+        self.python_subject, created = Subject.objects.get_or_create(name="Python")
+        self.java_subject, created = Subject.objects.get_or_create(name="Java")
         
-        #Create User instances for testing
+        #Create unique User instances for testing
         self.user1 = User.objects.create_user(
             username="@janedoe",
-            email="janedoe@example.com",
+            email="janedoe@example.com",  #unique email
             password="password123",
+<<<<<<< HEAD
             user_type='not specified',
+=======
+            user_type="tutor"
+>>>>>>> dd41c32 (test changes)
         )
         self.client.login(username="@janedoe", password="password123")
 
         self.user2 = User.objects.create_user(
             username="@johnsmith",
-            email="johnsmith@example.com",
+            email="johnsmith@example.com",  #unique email
             password="password123",
+<<<<<<< HEAD
             user_type='not specified',
+=======
+            user_type="tutor"
+>>>>>>> dd41c32 (test changes)
         )
         self.client.login(username="@johnsmith", password="password123")
 
 
+        #Create the login user (@johndoe)
+        self.login_user = User.objects.create_user(
+            username="@johndoe",
+            email="johndoe@example.com",  #unique email for login
+            password="Password123",
+            user_type="not specified"
+        )
+
+        #Create Tutor instances ensuring to associate with User and Subject
         self.tutor1 = Tutor.objects.create(
             name="Jane Doe",
-            username=self.user1,
-            email="janedoe@example.com",
-            rate = Decimal("25.50")
+            username=self.user1,  # linking to the user
+            email="janedoe@example.com",  #unique email
+            rate=Decimal("25.50")
         )
-        self.tutor2 = Tutor.objects.create(
-            name="John Smith",
-            username=self.user2,
-            email="johnsmith@example.com",
-            rate = Decimal("28.00")
-        )
-
-
         self.tutor1.subjects.add(self.python_subject)
         self.tutor1.subjects.add(self.java_subject)
+
+        self.tutor2 = Tutor.objects.create(
+            name="John Smith",
+            username=self.user2,  #linking to the user
+            email="johnsmith@example.com",  #unique email
+            rate=Decimal("28.00")
+        )
         self.tutor2.subjects.add(self.java_subject)
 
+<<<<<<< HEAD
         self.url = reverse('tutors_list')  # URL for the tutors view
+=======
+        self.url = reverse('tutors_list')  #URL for the tutors view
+>>>>>>> dd41c32 (test changes)
 
     def test_tutors_url(self):
         """Ensure the URL for the tutors view resolves correctly."""
