@@ -14,7 +14,7 @@ from .models import Booking, Session, User, Student, StudentRequest, Tutor, Subj
 from .forms import BookingForm, SessionForm, UserForm, StudentForm,StudentRequestForm, TutorForm
 from django.shortcuts import get_object_or_404
 from django.db.models import F, Q
-from django.http import HttpResponseRedirect,Http404
+from django.http import HttpResponseForbidden, HttpResponseRedirect,Http404
 
 
 
@@ -617,6 +617,9 @@ def session_show(request, pk):
 def session_update(request, pk):
     """Update a specific session."""
     session = get_object_or_404(Session, pk=pk)  # Fetch the session or return 404
+
+    if request.user != session.booking.student.username and not request.user.is_staff:
+        return HttpResponseForbidden()
 
     if request.method == 'POST':
         form = SessionForm(request.POST, instance=session)  # Bind data to the form

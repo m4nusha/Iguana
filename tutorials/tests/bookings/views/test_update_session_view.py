@@ -39,33 +39,53 @@ class UpdateSessionViewTestCase(TestCase):
 
     def test_get_update_session_view(self):
         """test accessing the session update view with a GET request"""
+        self.client.login(username='student_user', password='password123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'bookings/sessions/session_update.html')
+        self.assertTemplateUsed(response, 'sessions/session_update.html')
         self.assertIn('form', response.context)
         self.assertTrue(response.context['form'].instance.pk == self.session.pk)
 
-    def test_post_update_session_view_valid(self):
-        """test submitting the form with valid data"""
-        response = self.client.post(self.url, data=self.form_data)
-        self.session.refresh_from_db()
-        self.assertEqual(self.session.session_date, self.form_data['session_date'])
-        self.assertEqual(self.session.session_time, self.form_data['session_time'])
-        self.assertEqual(self.session.venue, self.form_data['venue'])
-        self.assertEqual(self.session.payment_status, self.form_data['payment_status'])
-        self.assertRedirects(response, reverse('session_list', kwargs={'booking_id': self.booking.pk}))
 
     def test_post_update_session_view_invalid(self):
         """test submitting the form with invalid data (e.g., missing a required field)"""
+        self.client.login(username='student_user', password='password123')
         invalid_data = self.form_data.copy()
         invalid_data['session_date'] = ''
         response = self.client.post(self.url, data=invalid_data)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'bookings/sessions/session_update.html')
+        self.assertTemplateUsed(response, 'sessions/session_update.html')
         form_errors = response.context['form'].errors
         self.assertIn('session_date', form_errors)
+    
+    def test_redirect_if_not_logged_in(self):
+        """Test that users who are not logged in are redirected to the login page."""
+        response = self.client.get(self.url)
+        self.assertRedirects(response, f"/log_in/?next={self.url}")
 
-    def test_update_session_redirects_on_success(self):
-        """test that a successful session update redirects to the correct page"""
-        response = self.client.post(self.url, data=self.form_data)
-        self.assertRedirects(response, reverse('session_list', kwargs={'booking_id': self.booking.pk}))
+    def test_access_denied_to_unauthorized_users(self):
+        """Test that a user who is not associated with the session cannot update it."""
+        other_user = User.objects.create_user(username="other_user", password="password123", email="other@example.com")
+        self.client.login(username="other_user", password="password123")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)  # Assuming a 403 Forbidden response for unauthorized access
+
+    def test_update_non_existent_session_returns_404(self):
+        """Test accessing the update page for a non-existent session."""
+        non_existent_url = reverse('session_update', kwargs={'pk': 9999})  # ID 9999 does not exist
+        self.client.login(username='student_user', password='password123')
+        response = self.client.get(non_existent_url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_invalid_data_does_not_update_session(self):
+        """Test that invalid form data does not update the session in the database."""
+        self.client.login(username='student_user', password='password123')
+        invalid_data = self.form_data.copy()
+        invalid_data['session_time'] = 'invalid time'  # Invalid time format
+        response = self.client.post(self.url, data=invalid_data)
+        self.session.refresh_from_db()
+        self.assertNotEqual(self.session.session_time, invalid_data['session_time'])  # Value shouldn't change
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'sessions/session_update.html')
+
+

@@ -7,6 +7,7 @@ class ShowBookingViewTest(TestCase):
     def setUp(self):
         student_user = User.objects.create_user(username="student_user", password="password123", email="student_user@example.com")
         tutor_user = User.objects.create_user(username="tutor_user", password="password123", email="tutor_user@example.com")
+        
         self.student = Student.objects.create(username=student_user)
         self.tutor = Tutor.objects.create(username=tutor_user)
         
@@ -28,6 +29,7 @@ class ShowBookingViewTest(TestCase):
 
     def test_show_booking_404(self):
         """test that 404 is returned for a non-existing booking"""
+        self.client.login(username='student_user', password='password123')
         response = self.client.get(reverse('session_list', kwargs={'booking_id': 99999}))
         self.assertEqual(response.status_code, 404)
 
@@ -52,6 +54,7 @@ class ShowBookingViewTest(TestCase):
 
     def test_get_show_booking_invalid(self):
         """test that if the booking doesn't exist, a 404 error is raised"""
+        self.client.login(username='student_user', password='password123')
         invalid_url = reverse('session_list', kwargs={'booking_id': 9999})
         response = self.client.get(invalid_url)
         self.assertEqual(response.status_code, 404)
@@ -70,3 +73,19 @@ class ShowBookingViewTest(TestCase):
         response = self.client.get(self.url)
         self.assertContains(response, f'/sessions/update/{self.session1.id}/')
         self.assertContains(response, f'/sessions/delete/{self.session2.id}/')
+
+    def test_show_booking_detail_view(self):
+        """test that the booking detail view displays correctly"""
+        self.client.login(username='student_user', password='password123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'bookings/booking_show.html')
+        self.assertIn('booking', response.context)
+        self.assertEqual(response.context['booking'].id, self.booking.id)
+
+    def test_booking_detail_view_not_found(self):
+        """test that a 404 is returned when accessing a non-existing booking"""
+        self.client.login(username='student_user', password='password123')
+        invalid_url = reverse('session_list', kwargs={'booking_id': 9999})
+        response = self.client.get(invalid_url)
+        self.assertEqual(response.status_code, 404)
