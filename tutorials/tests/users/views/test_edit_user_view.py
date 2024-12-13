@@ -30,7 +30,7 @@ class EditUserViewTest(TestCase):
         }
         response = self.client.post(self.url, data=invalid_data)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'edit_users_type.html')
+        self.assertTemplateUsed(response, 'users/edit_users_type.html')
         self.assertContains(response, 'This field is required.')
         self.assertContains(response, 'Enter a valid email address.')
         self.user_to_edit.refresh_from_db()

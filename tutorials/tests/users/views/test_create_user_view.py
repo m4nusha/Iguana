@@ -28,7 +28,7 @@ class CreateUserViewTest(TestCase):
         }
         response = self.client.post(self.url, data=invalid_data)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'create_user.html')
+        self.assertTemplateUsed(response, 'users/create_user.html')
         self.assertContains(response, 'This field is required.')
         self.assertContains(response, 'Enter a valid email address.')
         
@@ -45,4 +45,4 @@ class CreateUserViewTest(TestCase):
         self.client.login(username='admin', password='admin123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'create_user.html')
+        self.assertTemplateUsed(response, 'users/create_user.html')
