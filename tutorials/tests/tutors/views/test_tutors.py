@@ -8,7 +8,7 @@ class TutorsViewTestCase(TestCase):
         self.python_subject, created = Subject.objects.get_or_create(name = "Python")
         self.java_subject, created = Subject.objects.get_or_create(name = "Java")
         
-        # Create User instances for testing
+        #Create User instances for testing
         self.user1 = User.objects.create_user(
             username="@janedoe",
             email="janedoe@example.com",
@@ -43,14 +43,19 @@ class TutorsViewTestCase(TestCase):
         self.tutor1.subjects.add(self.python_subject)
         self.tutor1.subjects.add(self.java_subject)
         self.tutor2.subjects.add(self.java_subject)
+
         self.url = reverse('tutors_list')  # URL for the tutors view
 
     def test_tutors_url(self):
         """Ensure the URL for the tutors view resolves correctly."""
+        #log in the test client
+        self.client.login(username="@janedoe", password="password123")
         self.assertEqual(self.url, '/tutors/')
 
     def test_get_tutors_view(self):
         """Ensure the tutors view returns the correct response and context."""
+        #log in the test client
+        self.client.login(username="@janedoe", password="password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'tutors/tutors_list.html')
@@ -73,6 +78,8 @@ class TutorsViewTestCase(TestCase):
 
     def test_no_tutors(self):
         """Ensure the tutors view handles an empty database gracefully."""
+        #log in the test client
+        self.client.login(username="@janedoe", password="password123")
         Tutor.objects.all().delete()  #remove all tutors
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)

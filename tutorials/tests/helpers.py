@@ -27,8 +27,8 @@ class MenuTesterMixin(AssertHTMLMixin):
         """Check that menu is present."""
         expected_links = [
         reverse('dashboard'),   # Dashboard
-        reverse('students'),    # Students
-        reverse('tutors'),      # Tutors
+        reverse('students_list'),    # Students
+        reverse('tutors_list'),      # Tutors
         reverse('users_list'),  # Users
         reverse('booking_list') # Bookings
     ]   

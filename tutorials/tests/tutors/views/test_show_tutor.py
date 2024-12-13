@@ -8,7 +8,7 @@ class ShowTutorTestCase(TestCase):
         self.python_subject, created = Subject.objects.get_or_create(name = "Python")
         self.java_subject, created = Subject.objects.get_or_create(name = "Java")
         
-        # Create User instances for testing
+        #Create User instances for testing
         self.user1 = User.objects.create_user(
             username="@janedoe",
             email="janedoe@example.com",
@@ -28,10 +28,14 @@ class ShowTutorTestCase(TestCase):
 
     def test_show_tutor_url(self):
         """Ensure the URL for show_tutor resolves correctly."""
+        #log in the test client
+        self.client.login(username="@janedoe", password="password123")
         self.assertEqual(self.url, f'/tutors/{self.tutor.id}/')
 
     def test_get_show_tutor_valid(self):
         """Ensure a valid tutor ID returns the correct response and context."""
+        #log in the test client
+        self.client.login(username="@janedoe", password="password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'tutors/show_tutor.html')
@@ -52,6 +56,8 @@ class ShowTutorTestCase(TestCase):
 
     def test_get_show_tutor_invalid(self):
         """Ensure an invalid tutor ID raises a 404 error."""
+        #log in the test client
+        self.client.login(username="@janedoe", password="password123")
         invalid_url = reverse('show_tutor', kwargs={'tutor_id': 9999})
         response = self.client.get(invalid_url)
         self.assertEqual(response.status_code, 404)

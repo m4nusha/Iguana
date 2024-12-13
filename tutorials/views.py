@@ -14,7 +14,7 @@ from .models import Booking, Session, User, Student, StudentRequest, Tutor, Subj
 from .forms import BookingForm, SessionForm, UserForm, StudentForm,StudentRequestForm, TutorForm
 from django.shortcuts import get_object_or_404
 from django.db.models import F, Q
-from django.http import HttpResponseRedirect,Http404
+from django.http import HttpResponseForbidden, HttpResponseRedirect,Http404
 
 
 
@@ -215,7 +215,6 @@ def users_list(request):
         'order_by': order_by,
         'search_query': search_query,
     })
-
 @login_required
 def edit_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -617,6 +616,9 @@ def session_update(request, pk):
     """Update a specific session."""
     session = get_object_or_404(Session, pk=pk)  # Fetch the session or return 404
 
+    if request.user != session.booking.student.username and not request.user.is_staff:
+        return HttpResponseForbidden()
+
     if request.method == 'POST':
         form = SessionForm(request.POST, instance=session)  # Bind data to the form
         if form.is_valid():
@@ -649,15 +651,14 @@ def tutors_list(request):
         'Ruby', 'Go', 'HTML/CSS', 'C', 'Scala'
     ]
     for subject in subjects:
-        Subject.objects.get_or_create(name=subject)
+        Subject.objects.get_or_create(name = subject)
         
-    subject_filter = request.GET.get('subject')  # Get the subject filter
-    order = request.GET.get('order')  # Get the order filter
-    search_query = request.GET.get('search')  # Get the search query
+    subject_filter = request.GET.get('subject')  #gets the subject filter
+    order = request.GET.get('order')  #gets the order filter
+    search_query = request.GET.get('search')  #gets the search query
     
     tutors = Tutor.objects.all()
     populate()
-
 
     #filter tutors by subject if provided
     if subject_filter:
@@ -727,4 +728,5 @@ def delete_tutor(request,tutor_id):
     else:
         context = f'Are you sure you want to delete the following tutor: "{tutor.name}".'
         return render(request,'tutors/delete_tutor.html', {'context': context,'tutor':tutor})
+    
     
