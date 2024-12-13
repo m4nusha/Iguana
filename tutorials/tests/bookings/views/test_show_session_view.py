@@ -27,27 +27,31 @@ class SessionShowViewTest(TestCase):
 
     def test_session_show_url(self):
         """Test correct URL mapping for the session_show view"""
-        self.assertEqual(self.url, f'/bookings/sessions/{self.session.id}/')
+        self.assertEqual(self.url, f'/sessions/{self.session.id}/')
 
     def test_get_session_show_view(self):
+        self.client.login(username='student_user', password='password123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'bookings/sessions/session_show.html')
+        self.assertTemplateUsed(response, 'sessions/session_show.html')
         self.assertIn('session', response.context)
         self.assertEqual(response.context['session'], self.session)
 
     def test_get_session_show_with_invalid_pk(self):
+        self.client.login(username='student_user', password='password123')
         invalid_url = reverse('session_show', args=[9999])
         response = self.client.get(invalid_url)
         self.assertEqual(response.status_code, 404)
 
     def test_session_show_contains_session_data(self):
+        self.client.login(username='student_user', password='password123')
         response = self.client.get(self.url)
-        self.assertContains(response, self.session.session_date)
-        self.assertContains(response, self.session.session_time)
+        self.assertContains(response, "January 1, 2025")
+        self.assertContains(response, self.session.session_time.strftime('%I:%M %p'))
         self.assertContains(response, self.session.venue)
 
     def test_session_show_redirect_for_non_existing_session(self):
+        self.client.login(username='student_user', password='password123')
         invalid_session_id = 9999
         response = self.client.get(reverse('session_show', args=[invalid_session_id]))
         self.assertEqual(response.status_code, 404)

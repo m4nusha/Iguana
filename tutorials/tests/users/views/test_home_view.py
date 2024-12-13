@@ -39,3 +39,8 @@ class HomeViewTestCase(TestCase):
         response = self.client.get(url)
         expected_redirect_url = f"{reverse('log_in')}?next={url}"
         self.assertRedirects(response, expected_redirect_url, status_code=302, target_status_code=200)
+    
+    def test_get_home_page_when_logged_out(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'home.html')

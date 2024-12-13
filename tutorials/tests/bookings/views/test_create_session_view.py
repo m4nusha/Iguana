@@ -13,6 +13,7 @@ class CreateSessionViewTest(TestCase):
         self.tutor = Tutor.objects.create(username=tutor_user)
         self.booking = Booking.objects.create(student=self.student, tutor=self.tutor, term=Booking.TERM1)
         self.url = reverse('session_create', args=[self.booking.id])
+        self.invalid_url = reverse('session_create', args=[9999])
         self.form_data = {
             'session_date': '2025-01-01',
             'session_time': '10:00:00',
@@ -27,13 +28,15 @@ class CreateSessionViewTest(TestCase):
 
     def test_get_create_session_view(self):
         """test accessing the create session view with a GET request"""
+        self.client.login(username='student_user', password='password123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'bookings/sessions/session_create.html')
+        self.assertTemplateUsed(response, 'sessions/session_create.html')
         self.assertIn('form', response.context)
     
     def test_invalid_post_does_not_create_session(self):
         """test an invalid POST request does not create a session"""
+        self.client.login(username='student_user', password='password123')
         self.form_data['session_date'] = ''
         self.form_data['booking'] = self.booking.id
         before_count = Session.objects.count()
@@ -41,11 +44,12 @@ class CreateSessionViewTest(TestCase):
         after_count = Session.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'bookings/sessions/session_create.html')
+        self.assertTemplateUsed(response, 'sessions/session_create.html')
         self.assertIn('session_date', response.context['form'].errors)
     
     def test_create_session_with_invalid_booking(self):
         """test that the session cannot be created with a non-existing booking"""
+        self.client.login(username='student_user', password='password123')
         invalid_url = reverse('session_create', args=[9999])
         before_count = Session.objects.count()
         response = self.client.post(invalid_url, data=self.form_data)
@@ -55,6 +59,7 @@ class CreateSessionViewTest(TestCase):
 
     def test_create_session_valid(self):
         """test a valid POST request to create a session"""
+        self.client.login(username='student_user', password='password123')
         before_count = Session.objects.count()
         self.form_data['booking'] = self.booking.id
         response = self.client.post(self.url, data=self.form_data)
@@ -65,6 +70,7 @@ class CreateSessionViewTest(TestCase):
 
     def test_duplicate_session_is_not_created(self):
         """test that attempting to create a duplicate session is prevented"""
+        self.client.login(username='student_user', password='password123')
         session = Session.objects.create(
             booking=self.booking,
             session_date="2025-01-01",
@@ -79,11 +85,12 @@ class CreateSessionViewTest(TestCase):
         after_count = Session.objects.count()
         self.assertEqual(after_count, before_count)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'bookings/sessions/session_create.html')
+        self.assertTemplateUsed(response, 'sessions/session_create.html')
         self.assertIn('__all__', response.context['form'].errors)
 
     def test_session_duration_calculation(self):
         """test that the session duration is correctly calculated"""
+        self.client.login(username='student_user', password='password123')
         self.form_data['booking'] = self.booking.id
         session_data = self.form_data.copy()
         session_data['duration'] = str(3600)
@@ -93,6 +100,7 @@ class CreateSessionViewTest(TestCase):
 
     def test_create_session_with_no_payment_status(self):
         """test that a session cannot be created if no payment status is provided"""
+        self.client.login(username='student_user', password='password123')
         self.form_data['booking'] = self.booking.id
         form_data_no_payment_status = self.form_data.copy()
         form_data_no_payment_status['payment_status'] = ''
@@ -104,6 +112,52 @@ class CreateSessionViewTest(TestCase):
 
     def test_create_session_redirects_on_success(self):
         """test that a successful session creation redirects to the correct page"""
+        self.client.login(username='student_user', password='password123')
         self.form_data['booking'] = self.booking.id
         response = self.client.post(self.url, data=self.form_data)
         self.assertRedirects(response, reverse('session_list', args=[self.booking.id]))
+
+    def test_login_required_to_access_create_session_view(self):
+        """test that users must be logged in to access the create session view"""
+        response = self.client.get(self.url)
+        login_url = reverse('log_in')
+        self.assertRedirects(response, f'{login_url}?next={self.url}')
+    
+    def test_get_create_session_view_authenticated(self):
+        """test logged-in users can access the session create form"""
+        self.client.login(username="student_user", password="password123")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'sessions/session_create.html')
+        self.assertIn('form', response.context)
+
+    def test_post_create_session_valid(self):
+        """test valid POST request creates a session successfully"""
+        self.client.login(username="student_user", password="password123")
+        self.form_data['booking'] = self.booking.id
+        before_count = Session.objects.count()
+        response = self.client.post(self.url, data=self.form_data)
+        after_count = Session.objects.count()
+        self.assertEqual(after_count, before_count + 1)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('session_list', args=[self.booking.id]))
+    
+    def test_create_session_invalid_booking(self):
+        """test creating a session with an invalid booking ID"""
+        self.client.login(username="student_user", password="password123")
+        before_count = Session.objects.count()
+        response = self.client.post(self.invalid_url, data=self.form_data)
+        after_count = Session.objects.count()
+        self.assertEqual(after_count, before_count)
+        self.assertEqual(response.status_code, 404)
+
+    def test_create_session_invalid_duration(self):
+        """test that invalid duration results in form errors"""
+        self.client.login(username="student_user", password="password123")
+        self.form_data['booking'] = self.booking.id
+        self.form_data['duration'] = '-3600'
+        before_count = Session.objects.count()
+        response = self.client.post(self.url, data=self.form_data)
+        after_count = Session.objects.count()
+        self.assertEqual(after_count, before_count)
+        self.assertIn('duration', response.context['form'].errors)
