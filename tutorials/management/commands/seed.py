@@ -16,7 +16,7 @@ class Command(BaseCommand):
 
     USER_COUNT = 300
     BOOKING_COUNT = 200
-    SESSION_COUNT = 100
+    SESSION_COUNT = 200
     STUDENT_REQUEST_COUNT = 50
     DEFAULT_PASSWORD = 'Password123'
     help = 'Seeds the database with sample data.'
@@ -91,17 +91,23 @@ class Command(BaseCommand):
             )
             if created:
                 if data['user_type'].lower() == 'student':
-                    Student.objects.get_or_create(
+                    student, created = Student.objects.get_or_create(
                         username=user,
                         defaults={
                             'name': f"{data['first_name']} {data['last_name']}",
                             'email': data['email'],
                             'allocated': random.choice([True, False]),
                             'payment': random.choice(['Successful', 'Pending']),
-                        }
-                    )
+                            }
+                        )
+                    if not created:
+                        # Update existing student with random payment if already created
+                        student.payment = random.choice(['Successful', 'Pending'])
+                        student.allocated = random.choice([True, False])
+                        student.save()
+
                 elif data['user_type'].lower() == 'tutor':
-                    tutor, _ = Tutor.objects.get_or_create(
+                    tutor, created = Tutor.objects.get_or_create(
                         username=user,
                         defaults={
                             'name': f"{data['first_name']} {data['last_name']}",
@@ -109,8 +115,11 @@ class Command(BaseCommand):
                             'rate': random.choice([10.0, 20.0, 30.0, 40.0, 50.0]),
                         }
                     )
-                    subject, _ = Subject.objects.get_or_create(name="Python")
-                    tutor.subjects.add(subject)
+                    # Assign dynamic rate and subjects even if tutor already exists
+                    if not created:
+                        tutor.rate = random.choice([10.0, 20.0, 30.0, 40.0, 50.0])
+                        tutor.save()
+
                 elif data['user_type'].lower() == 'admin':
                     user.is_staff = True
                     user.is_superuser = True
@@ -156,7 +165,7 @@ class Command(BaseCommand):
         print("Bookings seeding complete.")
 
     def generate_random_sessions(self):
-        """Generates random sessions."""
+        """Generates exactly one session per booking."""
         bookings = Booking.objects.all()
         venues = ['Bush House', 'Waterloo Campus']
         
@@ -164,8 +173,7 @@ class Command(BaseCommand):
             print("No bookings available to create sessions.")
             return
 
-        for _ in range(self.SESSION_COUNT):
-            booking = random.choice(bookings)
+        for booking in bookings:
             session_date = self.faker.date_between(start_date="today", end_date="+90d")
             session_time = self.faker.time(pattern='%H:%M:%S', end_datetime=None)
             duration = timedelta(hours=random.randint(1, 4))
@@ -173,18 +181,21 @@ class Command(BaseCommand):
             payment_status = random.choice(['Pending', 'Successful'])
 
             try:
-                Session.objects.create(
-                    booking=booking,
-                    session_date=session_date,
-                    session_time=session_time,
-                    duration=duration,
-                    venue=venue,
-                    payment_status=payment_status,
-                )
+                # Ensure only one session is created per booking
+                if not Session.objects.filter(booking=booking).exists():
+                    Session.objects.create(
+                        booking=booking,
+                        session_date=session_date,
+                        session_time=session_time,
+                        duration=duration,
+                        venue=venue,
+                        payment_status=payment_status,
+                    )
             except Exception as e:
-                print(f"Error creating session: {e}")
+                print(f"Error creating session for booking {booking.id}: {e}")
 
         print("Sessions seeding complete.")
+
 
     def generate_random_student_requests(self):
         """Generates random student requests."""
